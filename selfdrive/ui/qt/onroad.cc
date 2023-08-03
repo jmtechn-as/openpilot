@@ -248,7 +248,7 @@ void OnroadWindow::paintEvent(QPaintEvent *event) {
     float delta = float(s->scene.blinkerframe)/(255*bottomsect);
     delta = std::clamp(delta, 0.0f, 1.0f);
     QRect r = QRect(leftcorner, height()-30, (width()-leftcorner)*delta, 30);
-    p.setBrush(QBrush(QColor(255, 150, 0, 150)));
+    p.setBrush(QBrush(QColor(255, 150, 0, 250)));
     p.drawRect(r);
     float delta2 = (float(s->scene.blinkerframe) - float(255 * bottomsect)) / (255 * (1 - bottomsect));
     delta2 = std::clamp(delta2, 0.0f, 1.0f);
@@ -1064,7 +1064,7 @@ void NvgWindow::drawCommunity(QPainter &p) {
   int scc_bus = car_params.getSccBus();
 
   QString infoText;
-  infoText.sprintf("         %s             SR %.2f             CPU온도 %.0f°C             CPU부하 %d%%             주행거리  %.1f km             SCC %d",
+  infoText.sprintf("         %s             SR %.2f             CPU온도 %.0f°C             CPU load %d%%             주행거리  %.1f km             SCC %d",
 		      lateral_state[lateralControlState],
                       //live_params.getAngleOffsetDeg(),
                       //live_params.getAngleOffsetAverageDeg(),
