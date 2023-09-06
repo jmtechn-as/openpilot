@@ -85,7 +85,12 @@ def manager_init() -> None:
     ("OpkrLaneChangeSpeed", "30"),
     ("SteerDeltaUp", "3"),       
     ("SteerDeltaDown", "7"),
-    ("PathOffset", "0"),
+    ("CameraOffsetAdj", "60"),
+    ("PathOffsetAdj", "0"),
+    ("CloseToRoadEdge", "0"),
+    ("LeftEdgeOffset", "0"),
+    ("RightEdgeOffset", "0"),
+    ("SteerActuatorDelayAdj", "10"),
     ("ShowDateTime", "1"),
     ("Sound_Mdpserr", "1"),
     ("Compass", "1"),
@@ -115,6 +120,7 @@ def manager_init() -> None:
     ("LongitudinalTuningKpV", "50"),     
     ("LongitudinalTuningKiV", "0"),
     ("MixRadarInfo", "1"),
+    ("AverageDesiredCurvature", "1"),
     ("PutPrebuilt", "0"), 
   ]
   if not PC:

@@ -8,16 +8,16 @@ from selfdrive.controls.lib.lane_planner import LanePlanner, TRAJECTORY_SIZE
 from selfdrive.controls.lib.desire_helper import DesireHelper#, AUTO_LCA_START_TIME
 import cereal.messaging as messaging
 from common.params import Params
+from decimal import Decimal
 from cereal import log
 
 LaneChangeState = log.LateralPlan.LaneChangeState
 
 class LateralPlanner:
-  def __init__(self, use_lanelines=True, wide_camera=False):
+  def __init__(self, CP, use_lanelines=True, wide_camera=False):
     self.use_lanelines = use_lanelines
     self.LP = LanePlanner(wide_camera)
     self.readParams = 0
-    self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
     self.DH = DesireHelper()
 
     self.last_cloudlog_t = 0
@@ -38,6 +38,8 @@ class LateralPlanner:
     self.dynamic_lane_profile_status_buffer = False
     self.second = 0.0
 
+    self.average_desired_curvature = CP.pfeiferjDesiredCurvatures
+    
   def reset_mpc(self, x0=np.zeros(4)):
     self.x0 = x0
     self.lat_mpc.reset(x0=self.x0)
@@ -57,7 +59,6 @@ class LateralPlanner:
     self.readParams -= 1
     if self.readParams <= 0:
       self.readParams = 100
-      self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
     self.second += DT_MDL
     if self.second > 1.0:
       self.use_lanelines = not Params().get_bool("EndToEndToggle")
@@ -88,24 +89,24 @@ class LateralPlanner:
     # Calculate final driving path and set MPC costs
     if self.use_lanelines:
       d_path_xyz = self.LP.get_d_path(v_ego, self.t_idxs, self.path_xyz)
-      d_path_xyz[:, 1] += self.pathOffset
+      d_path_xyz[:, 1] += -(float(Decimal(Params().get("PathOffsetAdj", encoding="utf8")) * Decimal('0.001')))
       self.lat_mpc.set_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.HEADING, MPC_COST_LAT.STEER_RATE)
       self.dynamic_lane_profile_status = False
     elif self.dynamic_lane_profile == 0:
       d_path_xyz = self.LP.get_d_path(v_ego, self.t_idxs, self.path_xyz)
-      d_path_xyz[:, 1] += self.pathOffset
+      d_path_xyz[:, 1] += -(float(Decimal(Params().get("PathOffsetAdj", encoding="utf8")) * Decimal('0.001')))
       self.lat_mpc.set_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.HEADING, MPC_COST_LAT.STEER_RATE)
       self.dynamic_lane_profile_status = False
     elif self.dynamic_lane_profile == 1:
       d_path_xyz = self.path_xyz
-      d_path_xyz[:, 1] += self.pathOffset
+      d_path_xyz[:, 1] += -(float(Decimal(Params().get("PathOffsetAdj", encoding="utf8")) * Decimal('0.001')))
       # Heading cost is useful at low speed, otherwise end of plan can be off-heading
       heading_cost = interp(v_ego, [5.0, 10.0], [MPC_COST_LAT.HEADING, 0.15])
       self.lat_mpc.set_weights(MPC_COST_LAT.PATH, heading_cost, MPC_COST_LAT.STEER_RATE)
       self.dynamic_lane_profile_status = True
     elif self.dynamic_lane_profile == 2 and ((self.LP.lll_prob + self.LP.rll_prob)/2 < 0.3) and self.DH.lane_change_state == LaneChangeState.off:
       d_path_xyz = self.path_xyz
-      d_path_xyz[:, 1] += self.pathOffset
+      d_path_xyz[:, 1] += -(float(Decimal(Params().get("PathOffsetAdj", encoding="utf8")) * Decimal('0.001')))
       # Heading cost is useful at low speed, otherwise end of plan can be off-heading
       heading_cost = interp(v_ego, [5.0, 10.0], [MPC_COST_LAT.HEADING, 0.15])
       self.lat_mpc.set_weights(MPC_COST_LAT.PATH, heading_cost, MPC_COST_LAT.STEER_RATE)
@@ -114,20 +115,20 @@ class LateralPlanner:
     elif self.dynamic_lane_profile == 2 and ((self.LP.lll_prob + self.LP.rll_prob)/2 > 0.5) and \
      self.dynamic_lane_profile_status_buffer and self.DH.lane_change_state == LaneChangeState.off:
       d_path_xyz = self.LP.get_d_path(v_ego, self.t_idxs, self.path_xyz)
-      d_path_xyz[:, 1] += self.pathOffset
+      d_path_xyz[:, 1] += -(float(Decimal(Params().get("PathOffsetAdj", encoding="utf8")) * Decimal('0.001')))
       self.lat_mpc.set_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.HEADING, MPC_COST_LAT.STEER_RATE)
       self.dynamic_lane_profile_status = False
       self.dynamic_lane_profile_status_buffer = False
     elif self.dynamic_lane_profile == 2 and self.dynamic_lane_profile_status_buffer == True and self.DH.lane_change_state == LaneChangeState.off:
       d_path_xyz = self.path_xyz
-      d_path_xyz[:, 1] += self.pathOffset
+      d_path_xyz[:, 1] += -(float(Decimal(Params().get("PathOffsetAdj", encoding="utf8")) * Decimal('0.001')))
       # Heading cost is useful at low speed, otherwise end of plan can be off-heading
       heading_cost = interp(v_ego, [5.0, 10.0], [MPC_COST_LAT.HEADING, 0.15])
       self.lat_mpc.set_weights(MPC_COST_LAT.PATH, heading_cost, MPC_COST_LAT.STEER_RATE)
       self.dynamic_lane_profile_status = True
     else:
       d_path_xyz = self.LP.get_d_path(v_ego, self.t_idxs, self.path_xyz)
-      d_path_xyz[:, 1] += self.pathOffset
+      d_path_xyz[:, 1] += -(float(Decimal(Params().get("PathOffsetAdj", encoding="utf8")) * Decimal('0.001')))
       self.lat_mpc.set_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.HEADING, MPC_COST_LAT.STEER_RATE)
       self.dynamic_lane_profile_status = False
       self.dynamic_lane_profile_status_buffer = False
@@ -193,5 +194,7 @@ class LateralPlanner:
     plan_send.lateralPlan.dPathWLinesY = [float(y) for y in self.d_path_w_lines_xyz[:, 1]]
     
     lateralPlan.dynamicLaneProfile = bool(self.dynamic_lane_profile_status)
-
+    
+    lateralPlan.totalCameraOffset = float(self.LP.total_camera_offset)
+    
     pm.send('lateralPlan', plan_send)

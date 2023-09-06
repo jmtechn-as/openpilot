@@ -30,6 +30,7 @@ from selfdrive.hardware import HARDWARE, TICI, EON
 from selfdrive.manager.process_config import managed_processes
 from selfdrive.car.hyundai.scc_smoother import SccSmoother
 from selfdrive.ntune import ntune_common_get, ntune_common_enabled, ntune_scc_get
+from decimal import Decimal
 
 SR_SCALE_BP = [0., 05., 10., 15., 20., 25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 85., 90., 95., 100., 105., 110., 115., 120., 125., 130.]
 SR_SCALE_V = [15.3, 15.3, 15.3, 15.3, 15.4, 15.4, 15.5, 15.5, 15.5, 15.5, 15.5, 15.6, 15.6, 15.6, 15.5, 15.5, 15.5, 15.5, 15.2, 15.2, 15.0, 14.8, 14.8, 14.8, 14.6, 14.5, 14.6]
@@ -116,6 +117,7 @@ class Controls:
     self.is_metric = params.get_bool("IsMetric")
     self.is_ldw_enabled = params.get_bool("IsLdwEnabled")
     openpilot_enabled_toggle = params.get_bool("OpenpilotEnabledToggle")
+    self.average_desired_curvature = self.CP.pfeiferjDesiredCurvatures
     passive = params.get_bool("Passive") or not openpilot_enabled_toggle
 
     # detect sound card presence and ensure successful init
@@ -637,7 +639,9 @@ class Controls:
       self.desired_curvature, self.desired_curvature_rate = get_lag_adjusted_curvature(self.CP, CS.vEgo,
                                                                                        lat_plan.psis,
                                                                                        lat_plan.curvatures,
-                                                                                       lat_plan.curvatureRates)
+                                                                                       lat_plan.curvatureRates,
+                                                                                       long_plan.distances,
+                                                                                       self.average_desired_curvature)
       actuators.steer, actuators.steeringAngleDeg, lac_log = self.LaC.update(CC.latActive, CS, self.VM, params,
                                                                              self.last_actuators, self.steer_limited, self.desired_curvature,
                                                                              self.desired_curvature_rate, self.sm['liveLocationKalman'])
@@ -721,6 +725,8 @@ class Controls:
     right_lane_visible = self.sm['lateralPlan'].rProb > 0.5
     left_lane_visible = self.sm['lateralPlan'].lProb > 0.5
 
+    totalCameraOffset = self.sm['lateralPlan'].totalCameraOffset
+    
     if self.sm.frame % 100 == 0:
       self.right_lane_visible = right_lane_visible
       self.left_lane_visible = left_lane_visible
@@ -823,11 +829,12 @@ class Controls:
 
     controlsState.steerRatio = self.VM.sR
     controlsState.steerRateCost = ntune_common_get('steerRateCost')
-    controlsState.steerActuatorDelay = ntune_common_get('steerActuatorDelay')
+    controlsState.steerActuatorDelay = float(Decimal(Params().get("SteerActuatorDelayAdj", encoding="utf8")) * Decimal('0.01'))
 
     controlsState.sccGasFactor = ntune_scc_get('sccGasFactor')
     controlsState.sccBrakeFactor = ntune_scc_get('sccBrakeFactor')
     controlsState.sccCurvatureFactor = ntune_scc_get('sccCurvatureFactor')
+    controlsState.totalCameraOffset = totalCameraOffset
     
     controlsState.lateralControlSelect = int(self.lateral_control_select)
     

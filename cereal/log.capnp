@@ -618,8 +618,8 @@ struct ControlsState @0x97ff69c53601abf1 {
 
   # add
   lateralControlSelect  @74 :UInt8;
-  
-  
+  totalCameraOffset @78 :Float32;
+
   enum OpenpilotState @0xdbe58b96d2d1ac61 {
     disabled @0;
     preEnabled @1;
@@ -881,6 +881,7 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   accels @32 :List(Float32);
   speeds @33 :List(Float32);
   jerks @34 :List(Float32);
+  distances @55 :List(Float32);
 
   solverExecutionTime @35 :Float32;
 
@@ -994,6 +995,7 @@ struct LateralPlan @0xe1e9318e2ae8b51e {
   autoLaneChangeTimer @33 :Int8;
   
   dynamicLaneProfile @34 :Bool;
+  totalCameraOffset @37 :Float32;
 
   enum Desire {
     none @0;

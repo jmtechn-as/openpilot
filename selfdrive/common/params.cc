@@ -226,7 +226,12 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"OpkrLaneChangeSpeed", PERSISTENT},
     {"SteerDeltaUp", PERSISTENT},
     {"SteerDeltaDown", PERSISTENT},
-    {"PathOffset", PERSISTENT},
+    {"CameraOffsetAdj", PERSISTENT},
+    {"PathOffsetAdj", PERSISTENT},
+    {"CloseToRoadEdge", PERSISTENT},
+    {"LeftEdgeOffset", PERSISTENT},
+    {"RightEdgeOffset", PERSISTENT},
+    {"SteerActuatorDelayAdj", PERSISTENT},
     {"ShowDateTime", PERSISTENT},
     {"ShowEngRPMUI", PERSISTENT},
     {"CustomRoadUI", PERSISTENT},
@@ -255,6 +260,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"LongitudinalTuningKiV", PERSISTENT},
     {"MixRadarInfo", PERSISTENT},
     {"OpkrUIBrightness", PERSISTENT},
+    {"AverageDesiredCurvature", PERSISTENT},
     {"Compass", PERSISTENT},
 };
 
