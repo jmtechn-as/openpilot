@@ -354,57 +354,6 @@ public:
   }
 };
 
-class DebugUiOneToggle : public ToggleControl {
-  Q_OBJECT
-
-public:
-  DebugUiOneToggle() : ToggleControl(tr("DEBUG UI 1"), "", "../assets/offroad/icon_shell.png", Params().getBool("DebugUi1")) {
-    QObject::connect(this, &DebugUiOneToggle::toggleFlipped, [=](int state) {
-      bool status = state ? true : false;
-      Params().putBool("DebugUi1", status);
-      if (state) {
-        QUIState::ui_state.scene.nDebugUi1 = true;
-      } else {
-        QUIState::ui_state.scene.nDebugUi1 = false;
-      }
-    });
-  }
-};
-
-class DebugUiTwoToggle : public ToggleControl {
-  Q_OBJECT
-
-public:
-  DebugUiTwoToggle() : ToggleControl(tr("DEBUG UI 2"), "", "../assets/offroad/icon_shell.png", Params().getBool("DebugUi2")) {
-    QObject::connect(this, &DebugUiTwoToggle::toggleFlipped, [=](int state) {
-      bool status = state ? true : false;
-      Params().putBool("DebugUi2", status);
-      if (state) {
-        QUIState::ui_state.scene.nDebugUi2 = true;
-      } else {
-        QUIState::ui_state.scene.nDebugUi2 = false;
-      }
-    });
-  }
-};
-
-class DebugUiThreeToggle : public ToggleControl {
-  Q_OBJECT
-
-public:
-  DebugUiThreeToggle() : ToggleControl(tr("DEBUG UI 3"), "", "../assets/offroad/icon_shell.png", Params().getBool("DebugUi3")) {
-    QObject::connect(this, &DebugUiThreeToggle::toggleFlipped, [=](int state) {
-      bool status = state ? true : false;
-      Params().putBool("DebugUi3", status);
-      if (state) {
-        QUIState::ui_state.scene.nDebugUi3 = true;
-      } else {
-        QUIState::ui_state.scene.nDebugUi3 = false;
-      }
-    });
-  }
-};
-
 class LongLogToggle : public ToggleControl {
   Q_OBJECT
 
@@ -865,14 +814,14 @@ class HoldForSettingToggle : public ToggleControl {
   Q_OBJECT
 
 public:
-  HoldForSettingToggle() : ToggleControl(tr("Hold Button for Setting Menu"), tr("Use 0.3 sec delay to enter setting menu. This is to prevent being touched in setting menu when you use external program(Mixplorer, etc)"), "../assets/offroad/icon_shell.png", Params().getBool("HoldForSetting")) {
+  HoldForSettingToggle() : ToggleControl(tr("Hold Button for Setting Menu"), tr("Use 0.2 sec delay to enter setting menu. This is to prevent being touched in setting menu when you use external program(Mixplorer, etc)"), "../assets/offroad/icon_shell.png", Params().getBool("HoldForSetting")) {
     QObject::connect(this, &HoldForSettingToggle::toggleFlipped, [=](int state) {
       bool status = state ? true : false;
       Params().putBool("HoldForSetting", status);
     });
   }
 };
-
+/*
 class RTShieldToggle : public ToggleControl {
   Q_OBJECT
 
@@ -896,7 +845,7 @@ public:
     });
   }
 };
-
+*/
 class SpeedBumpDecelToggle : public ToggleControl {
   Q_OBJECT
 
@@ -982,18 +931,6 @@ public:
       } else {
         QUIState::ui_state.scene.OPKR_Debug = false;
       }
-    });
-  }
-};
-
-class SetSpeedByFive : public ToggleControl {
-  Q_OBJECT
-
-public:
-  SetSpeedByFive() : ToggleControl(tr("SetSpeed Changed by 5"), tr("MAX Speed can be adjusted by 5. Cruise Set Speed will be set as same with MAX quickly."), "../assets/offroad/icon_shell.png", Params().getBool("SetSpeedFive")) {
-    QObject::connect(this, &SetSpeedByFive::toggleFlipped, [=](int state) {
-      bool status = state ? true : false;
-      Params().putBool("SetSpeedFive", status);
     });
   }
 };
@@ -2207,21 +2144,6 @@ private:
   QLineEdit edit2;
   Params params;
 
-  void refresh();
-};
-
-class GetOffAlert : public AbstractControl {
-  Q_OBJECT
-
-public:
-  GetOffAlert();
-
-private:
-  QPushButton btnplus;
-  QPushButton btnminus;
-  QLabel label;
-  Params params;
-  
   void refresh();
 };
 

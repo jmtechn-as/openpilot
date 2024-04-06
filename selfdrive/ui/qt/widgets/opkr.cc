@@ -524,78 +524,6 @@ GitHash::GitHash() : AbstractControl(tr("Commit (Local/Remote)"), "", "") {
   hlayout->addWidget(&remote_hash);
 }
 
-OpenpilotView::OpenpilotView() : AbstractControl(tr("Driving Camera"), tr("Preview the open pilot driving screen."), "") {
-
-  // setup widget
-  hlayout->addStretch(1);
-
-  btn.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-
-  btnc.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-
-  btn.setFixedSize(250, 100);
-  btnc.setFixedSize(250, 100);
-  hlayout->addWidget(&btnc);
-  hlayout->addWidget(&btn);
-
-  QObject::connect(&btn, &QPushButton::clicked, [=]() {
-    bool stat = params.getBool("IsOpenpilotViewEnabled");
-    if (stat) {
-      params.putBool("IsOpenpilotViewEnabled", false);
-      QUIState::ui_state.scene.cal_view = false;
-    } else {
-      params.putBool("IsOpenpilotViewEnabled", true);
-      QUIState::ui_state.scene.cal_view = false;
-    }
-    refresh();
-  });
-  QObject::connect(&btnc, &QPushButton::clicked, [=]() {
-    bool stat = params.getBool("IsOpenpilotViewEnabled");
-    if (stat) {
-      params.putBool("IsOpenpilotViewEnabled", false);
-      QUIState::ui_state.scene.cal_view = false;
-    } else {
-      params.putBool("IsOpenpilotViewEnabled", true);
-      QUIState::ui_state.scene.cal_view = true;
-    }
-    refresh();
-  });
-  refresh();
-}
-
-void OpenpilotView::refresh() {
-  bool param = params.getBool("IsOpenpilotViewEnabled");
-  QString car_param = QString::fromStdString(params.get("CarParams"));
-  if (param) {
-    btn.setText(tr("UNVIEW"));
-    btnc.setText(tr("UNVIEW"));
-  } else {
-    btn.setText(tr("PREVIEW"));
-    btnc.setText(tr("CALVIEW"));
-  }
-  if (car_param.length()) {
-    btn.setEnabled(false);
-    btnc.setEnabled(false);
-  } else {
-    btn.setEnabled(true);
-    btnc.setEnabled(true);
-  }
-}
-
 CarSelectCombo::CarSelectCombo() : AbstractControl("", "", "") 
 {
   combobox.setStyleSheet(R"(
@@ -5804,73 +5732,7 @@ void OCurvSpeed::refresh() {
   btn.setText(tr("EDIT"));
 }
 
-GetOffAlert::GetOffAlert() : AbstractControl(tr("EON Detach Alert Sound"), tr("Device alert you a alarm to detach the EON when ignition off.(NO Alert/KOR/ENG)"), "../assets/offroad/icon_shell.png") {
-
-  label.setAlignment(Qt::AlignVCenter|Qt::AlignRight);
-  label.setStyleSheet("color: #e0e879");
-  hlayout->addWidget(&label);
-
-  btnminus.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-  btnplus.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-  btnminus.setFixedSize(150, 100);
-  btnplus.setFixedSize(150, 100);
-  btnminus.setText("◀");
-  btnplus.setText("▶");
-  hlayout->addWidget(&btnminus);
-  hlayout->addWidget(&btnplus);
-
-  QObject::connect(&btnminus, &QPushButton::clicked, [=]() {
-    auto str = QString::fromStdString(params.get("OpkrEnableGetoffAlert"));
-    int value = str.toInt();
-    value = value - 1;
-    if (value <= -1) {
-      value = 2;
-    }
-    QString values = QString::number(value);
-    params.put("OpkrEnableGetoffAlert", values.toStdString());
-    refresh();
-  });
-  
-  QObject::connect(&btnplus, &QPushButton::clicked, [=]() {
-    auto str = QString::fromStdString(params.get("OpkrEnableGetoffAlert"));
-    int value = str.toInt();
-    value = value + 1;
-    if (value >= 3) {
-      value = 0;
-    }
-    QString values = QString::number(value);
-    params.put("OpkrEnableGetoffAlert", values.toStdString());
-    refresh();
-  });
-  refresh();
-}
-
-void GetOffAlert::refresh() {
-  QString option = QString::fromStdString(params.get("OpkrEnableGetoffAlert"));
-  if (option == "0") {
-    label.setText(tr("None"));
-  } else if (option == "1") {
-    label.setText(tr("KOR"));
-  } else {
-    label.setText(tr("ENG"));
-  }
-}
-
-OPKRNaviSelect::OPKRNaviSelect() : AbstractControl(tr("Navigation Select"), tr("Select the navigation you want to use.(None/Mappy/iNavi/Waze/TMapE/WazeE)"), "../assets/offroad/icon_shell.png") {
+OPKRNaviSelect::OPKRNaviSelect() : AbstractControl(tr("Navigation Select"), tr("Select the navigation you want to use.(None/Mappy)"), "../assets/offroad/icon_shell.png") {
 
   label.setAlignment(Qt::AlignVCenter|Qt::AlignRight);
   label.setStyleSheet("color: #e0e879");
@@ -5904,7 +5766,7 @@ OPKRNaviSelect::OPKRNaviSelect() : AbstractControl(tr("Navigation Select"), tr("
     int value = str.toInt();
     value = value - 1;
     if (value <= -1) {
-      value = 5;
+      value = 1;
     }
     QString values = QString::number(value);
     params.put("OPKRNaviSelect", values.toStdString());
@@ -5914,7 +5776,7 @@ OPKRNaviSelect::OPKRNaviSelect() : AbstractControl(tr("Navigation Select"), tr("
     auto str = QString::fromStdString(params.get("OPKRNaviSelect"));
     int value = str.toInt();
     value = value + 1;
-    if (value >= 6) {
+    if (value >= 2) {
       value = 0;
     }
     QString values = QString::number(value);
@@ -5928,10 +5790,6 @@ void OPKRNaviSelect::refresh() {
   QString option = QString::fromStdString(params.get("OPKRNaviSelect"));
   if (option == "0") {label.setText(tr("None"));
   } else if (option == "1") {label.setText(tr("Mappy"));
-  } else if (option == "2") {label.setText(tr("iNavi"));
-  } else if (option == "3") {label.setText(tr("Waze"));
-  } else if (option == "4") {label.setText(tr("TMapE"));
-  } else if (option == "5") {label.setText(tr("WazeE"));
   }
 }
 

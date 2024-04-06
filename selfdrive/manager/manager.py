@@ -38,12 +38,11 @@ def manager_init() -> None:
   params.clear_all(ParamKeyType.CLEAR_ON_MANAGER_START)
 
   default_params: List[Tuple[str, Union[str, bytes]]] = [
-    ("CompletedTrainingVersion", "0"),
-    ("HasAcceptedTerms", "0"),
+    ("CompletedTrainingVersion", "0.2.0"),
+    ("HasAcceptedTerms", "2"),
     ("OpenpilotEnabledToggle", "1"),
     ("IsMetric", "1"),
     ("EndToEndToggle", "1"),
-    ("IsOpenpilotViewEnabled", "0"),
     ("OpkrAutoShutdown", "2"),
     ("OpkrForceShutdown", "5"),
     ("OpkrAutoScreenOff", "-2"),
@@ -52,7 +51,6 @@ def manager_init() -> None:
     ("OpkrEnableDriverMonitoring", "1"),
     ("OpkrEnableLogger", "0"),
     ("OpkrEnableUploader", "0"),
-    ("OpkrEnableGetoffAlert", "0"),
     ("OpkrAutoResume", "1"),
     ("OpkrVariableCruise", "1"),
     ("OpkrLaneChangeSpeed", "30"),
@@ -162,7 +160,6 @@ def manager_init() -> None:
     ("SafetyCamDecelDistGain", "0"),
     ("OpkrLiveTunePanelEnable", "0"),
     ("RadarLongHelper", "2"),
-    ("GitPullOnBoot", "0"),
     ("LiveSteerRatioPercent", "-5"),
     ("StoppingDistAdj", "0"),
     ("ShowError", "1"),
@@ -179,7 +176,6 @@ def manager_init() -> None:
     ("OPKRNaviSelect", "0"),
     ("dp_atl", "1"),
     ("E2ELong", "0"),
-    ("GoogleMapEnabled", "0"),
     ("OPKRServer", "0"),
     ("OPKRMapboxStyleSelect", "0"),
     ("IgnoreCANErroronISG", "0"),
@@ -225,12 +221,12 @@ def manager_init() -> None:
     ("MultipleLateralAng", "20,35"),
     ("StoppingDist", "38"),
     ("SpeedCameraOffset", "0"),
-    ("HoldForSetting", "1"),
+    ("HoldForSetting", "0"),
     ("RTShield", "1"),
     ("OSMOfflineUse", "0"),
     ("StopAtStopSign", "0"),
     ("VarCruiseSpeedFactor", "10"),
-    ("LanguageSetting", "main_en"),
+    ("LanguageSetting", "main_ko"),
     ("OPKRSpeedBump", "0"),
     ("OPKREarlyStop", "1"),
     ("DoNotDisturbMode", "0"),
@@ -241,8 +237,9 @@ def manager_init() -> None:
     ("CruiseGapBySpdGap", "1,2,3,4"),
     ("CruiseSetwithRoadLimitSpeedEnabled", "0"),
     ("CruiseSetwithRoadLimitSpeedOffset", "0"),
-    ("SetSpeedFive", "0"),
-   ]
+    ("GitPullOnBoot", "0"),
+    ("GoogleMapEnabled", "0"),
+  ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
 

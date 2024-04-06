@@ -104,9 +104,19 @@ void setQtSurfaceFormat() {
   QSurfaceFormat::setDefaultFormat(fmt);
 }
 
-void initApp() {
+void sigTermHandler(int s) {
+  std::signal(s, SIG_DFL);
+  qApp->quit();
+}
+
+void initApp(int argc, char *argv[]) {
   Hardware::set_display_power(true);
   Hardware::set_brightness(65);
+
+  // setup signal handlers to exit gracefully
+  std::signal(SIGINT, sigTermHandler);
+  std::signal(SIGTERM, sigTermHandler);
+
   setQtSurfaceFormat();
   if (Hardware::EON()) {
     QApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
@@ -150,4 +160,18 @@ void swagLogMessageHandler(QtMsgType type, const QMessageLogContext &context, co
 QWidget* topWidget (QWidget* widget) {
   while (widget->parentWidget() != nullptr) widget=widget->parentWidget();
   return widget;
+}
+
+QPixmap loadPixmap(const QString &fileName, const QSize &size, Qt::AspectRatioMode aspectRatioMode) {
+  if (size.isEmpty()) {
+    return QPixmap(fileName);
+  } else {
+    return QPixmap(fileName).scaled(size, aspectRatioMode, Qt::SmoothTransformation);
+  }
+}
+
+QRect getTextRect(QPainter &p, int flags, const QString &text) {
+  QFontMetrics fm(p.font());
+  QRect init_rect = fm.boundingRect(text);
+  return fm.boundingRect(init_rect, flags, text);
 }

@@ -104,7 +104,6 @@ class CarController():
     self.opkr_turnsteeringdisable = self.params.get_bool("OpkrTurnSteeringDisable")
     self.opkr_maxanglelimit = float(int(self.params.get("OpkrMaxAngleLimit", encoding="utf8")))
     self.ufc_mode_enabled = self.params.get_bool("UFCModeEnabled")
-    self.ldws_fix = self.params.get_bool("LdwsCarFix")
     self.radar_helper_option = int(self.params.get("RadarLongHelper", encoding="utf8"))
     self.stopping_dist_adj_enabled = self.params.get_bool("StoppingDistAdj")
     self.standstill_resume_alt = self.params.get_bool("StandstillResumeAlt")
@@ -470,16 +469,16 @@ class CarController():
 
     can_sends.append(create_lkas11(self.packer, frame, self.car_fingerprint, apply_steer, lkas_active and not self.lkas_temp_disabled,
                                    cut_steer_temp, CS.lkas11, sys_warning, sys_state, enabled, left_lane, right_lane,
-                                   left_lane_warning, right_lane_warning, 0, self.ldws_fix, self.lkas11_cnt))
+                                   left_lane_warning, right_lane_warning, 0, self.lkas11_cnt))
 
     if CS.CP.sccBus: # send lkas11 bus 1 or 2 if scc bus is
       can_sends.append(create_lkas11(self.packer, frame, self.car_fingerprint, apply_steer, lkas_active and not self.lkas_temp_disabled,
                                    cut_steer_temp, CS.lkas11, sys_warning, sys_state, enabled, left_lane, right_lane,
-                                   left_lane_warning, right_lane_warning, CS.CP.sccBus, self.ldws_fix, self.lkas11_cnt))
+                                   left_lane_warning, right_lane_warning, CS.CP.sccBus, self.lkas11_cnt))
     if CS.CP.mdpsBus: # send lkas11 bus 1 if mdps is bus 1
       can_sends.append(create_lkas11(self.packer, frame, self.car_fingerprint, apply_steer, lkas_active and not self.lkas_temp_disabled,
                                    cut_steer_temp, CS.lkas11, sys_warning, sys_state, enabled, left_lane, right_lane,
-                                   left_lane_warning, right_lane_warning, 1, self.ldws_fix, self.lkas11_cnt))
+                                   left_lane_warning, right_lane_warning, 1, self.lkas11_cnt))
       if frame % 2: # send clu11 to mdps if it is not on bus 0
         can_sends.append(create_clu11(self.packer, frame, CS.clu11, Buttons.NONE, enabled_speed, CS.CP.mdpsBus))
 

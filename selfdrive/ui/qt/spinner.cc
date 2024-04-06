@@ -9,7 +9,6 @@
 #include <QPainter>
 #include <QString>
 #include <QTransform>
-#include <QTime>
 
 #include "selfdrive/hardware/hw.h"
 #include "selfdrive/ui/qt/qt_window.h"
@@ -20,8 +19,8 @@ TrackWidget::TrackWidget(QWidget *parent) : QWidget(parent) {
   setFixedSize(spinner_size);
 
   // pre-compute all the track imgs. make this a gif instead?
-  QPixmap comma_img = QPixmap("../assets/img_spinner_comma.png").scaled(spinner_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-  QPixmap track_img = QPixmap("../assets/img_spinner_track.png").scaled(spinner_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  QPixmap comma_img = loadPixmap("../assets/img_spinner_comma.png", spinner_size);
+  QPixmap track_img = loadPixmap("../assets/img_spinner_track.png", spinner_size);
 
   QTransform transform(1, 0, 0, 1, width() / 2, height() / 2);
   QPixmap pm(spinner_size);
@@ -52,7 +51,6 @@ void TrackWidget::paintEvent(QPaintEvent *event) {
 // Spinner
 
 Spinner::Spinner(QWidget *parent) : QWidget(parent) {
-  btElapsed.start();
   QGridLayout *main_layout = new QGridLayout(this);
   main_layout->setSpacing(0);
   main_layout->setMargin(200);
@@ -71,21 +69,6 @@ Spinner::Spinner(QWidget *parent) : QWidget(parent) {
   progress_bar->setVisible(false);
   progress_bar->setFixedHeight(20);
   main_layout->addWidget(progress_bar, 1, 0, Qt::AlignHCenter);
-
-  ip_label = new QLabel();
-  const QHostAddress &localhost = QHostAddress(QHostAddress::LocalHost);
-  for (const QHostAddress &address: QNetworkInterface::allAddresses()) {
-    if (address.protocol() == QAbstractSocket::IPv4Protocol && address != localhost)
-      device_ip = address.toString();
-  }
-  ip_label->setText(device_ip);
-  ip_label->setVisible(false);
-  main_layout->addWidget(ip_label, 0, 0, Qt::AlignRight | Qt::AlignTop);
-
-  bt_label = new QLabel();
-  bt_label->setText("00:00");
-  bt_label->setVisible(false);
-  main_layout->addWidget(bt_label, 0, 0, Qt::AlignLeft | Qt::AlignTop);
 
   setStyleSheet(R"(
     Spinner {
@@ -120,19 +103,15 @@ void Spinner::update(int n) {
     bool number = std::all_of(line.begin(), line.end(), ::isdigit);
     text->setVisible(!number);
     progress_bar->setVisible(number);
-    ip_label->setVisible(true);
     text->setText(QString::fromStdString(line));
     if (number) {
       progress_bar->setValue(std::stoi(line));
     }
-    bt_label->setVisible(true);
-    QString btoutTime = QTime::fromMSecsSinceStartOfDay(btElapsed.elapsed()).toString("mm:ss");
-    bt_label->setText(btoutTime);
   }
 }
 
 int main(int argc, char *argv[]) {
-  initApp();
+  initApp(argc, argv);
   QApplication a(argc, argv);
   Spinner spinner;
   setMainWindow(&spinner);

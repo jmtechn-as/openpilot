@@ -76,8 +76,8 @@ void Sidebar::mouseReleaseEvent(QMouseEvent *event) {
       emit openSettings();
     } else if ( pressTime > MY_LONG_PRESS_THRESHOLD && trig_settings) {
       emit openSettings();
-    } else if ( pressTime < 300 && trig_settings) {
-      ConfirmationDialog::alert(tr("Hold 0.3 sec on the button to enter Setting Menu."), this);
+    } else if ( pressTime < 200 && trig_settings) {
+      ConfirmationDialog::alert(tr("Hold 0.2 sec on the button to enter Setting Menu."), this);
     }
   }
 }
@@ -99,12 +99,15 @@ void Sidebar::updateState(const UIState &s) {
   }
   setProperty("connectStatus", QVariant::fromValue(connectStatus));
 
-  ItemStatus tempStatus = {{tr("TEMP"), tr("HIGH")}, danger_color};
+  int maxTempC = deviceState.getAmbientTempC();
+  QString max_temp = QString::number(maxTempC) + "°C";
+
+  ItemStatus tempStatus = {{tr("TEMP"), max_temp}, danger_color};
   auto ts = deviceState.getThermalStatus();
   if (ts == cereal::DeviceState::ThermalStatus::GREEN) {
-    tempStatus = {{tr("TEMP"), tr("GOOD")}, good_color};
+    tempStatus = {{tr("TEMP"), max_temp}, good_color};
   } else if (ts == cereal::DeviceState::ThermalStatus::YELLOW) {
-    tempStatus = {{tr("TEMP"), tr("OK")}, warning_color};
+    tempStatus = {{tr("TEMP"), max_temp}, warning_color};
   }
   setProperty("tempStatus", QVariant::fromValue(tempStatus));
 

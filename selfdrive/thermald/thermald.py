@@ -54,7 +54,6 @@ OFFROAD_DANGER_TEMP = 79.5 if TICI else 70.0
 
 prev_offroad_states: Dict[str, Tuple[bool, Optional[str]]] = {}
 
-mediaplayer = '/data/openpilot/selfdrive/assets/addon/mediaplayer/'
 prebuiltfile = '/data/openpilot/prebuilt'
 sshkeyfile = '/data/public_key'
 pandaflash_ongoing = '/data/openpilot/pandaflash_ongoing'
@@ -217,17 +216,8 @@ def thermald_thread(end_event, hw_queue):
 
   fan_controller = None
 
-  # sound trigger
-  sound_trigger = 1
-  opkrAutoShutdown = 0
-
   shutdown_trigger = 1
   is_openpilot_view_enabled = 0
-
-  env = dict(os.environ)
-  env['LD_LIBRARY_PATH'] = mediaplayer
-
-  getoff_alert = int(params.get("OpkrEnableGetoffAlert", encoding="utf8"))
 
   hotspot_on_boot = params.get_bool("OpkrHotspotOnBoot")
   hotspot_run = False
@@ -240,7 +230,6 @@ def thermald_thread(end_event, hw_queue):
   c2withCommaPower = params.get_bool("C2WithCommaPower")
 
   is_openpilot_dir = True
-  wakeuprunning = False
   onroadrefresh = False
 
   ts = sec_since_boot()
@@ -264,8 +253,6 @@ def thermald_thread(end_event, hw_queue):
 
       if pandaState.pandaType != log.PandaState.PandaType.unknown:
         shutdown_trigger = 1
-      else:
-        sound_trigger == 1
 
       in_car = pandaState.harnessStatus != log.PandaState.HarnessStatus.notConnected
       usb_power = peripheralState.usbPowerMode != log.PeripheralState.UsbPowerMode.client
@@ -279,16 +266,7 @@ def thermald_thread(end_event, hw_queue):
           fan_controller = UnoFanController()
         else:
           fan_controller = EonFanController()
-    elif params.get_bool("IsOpenpilotViewEnabled") and not params.get_bool("IsDriverViewEnabled") and is_openpilot_view_enabled == 0:
-      is_openpilot_view_enabled = 1
-      onroad_conditions["ignition"] = True
-    elif not params.get_bool("IsOpenpilotViewEnabled") and not params.get_bool("IsDriverViewEnabled") and is_openpilot_view_enabled == 1:
-      shutdown_trigger = 0
-      sound_trigger == 0
-      is_openpilot_view_enabled = 0
-      onroad_conditions["ignition"] = False
-      fan_controller = None
-    elif not is_openpilot_view_enabled:
+    else:
       if sec_since_boot() - ts > DISCONNECT_TIMEOUT:
         if onroad_conditions["ignition"]:
           cloudlog.error("Lost panda connection while onroad")
@@ -358,44 +336,10 @@ def thermald_thread(end_event, hw_queue):
 
     # Ensure date/time are valid
     now = datetime.datetime.utcnow()
-    startup_conditions["time_valid"] = True if ((now.year > 2020) or (now.year == 2020 and now.month >= 10)) else True # set True for battery less EON otherwise, set False.
-    set_offroad_alert_if_changed("Offroad_InvalidTime", (not startup_conditions["time_valid"]))
+    startup_conditions["time_valid"] = True #if ((now.year > 2020) or (now.year == 2020 and now.month >= 10)
+    #set_offroad_alert_if_changed("Offroad_InvalidTime", (not startup_conditions["time_valid"]))
 
-    # Show update prompt
-    # try:
-    #   last_update = datetime.datetime.fromisoformat(params.get("LastUpdateTime", encoding='utf8'))
-    # except (TypeError, ValueError):
-    #   last_update = now
-    # dt = now - last_update
-
-    # update_failed_count = params.get("UpdateFailedCount")
-    # update_failed_count = 0 if update_failed_count is None else int(update_failed_count)
-    # last_update_exception = params.get("LastUpdateException", encoding='utf8')
-
-    # if update_failed_count > 15 and last_update_exception is not None:
-    #   if current_branch in ["release2", "dashcam"]:
-    #     extra_text = "Ensure the software is correctly installed"
-    #   else:
-    #     extra_text = last_update_exception
-
-    #   set_offroad_alert_if_changed("Offroad_ConnectivityNeeded", False)
-    #   set_offroad_alert_if_changed("Offroad_ConnectivityNeededPrompt", False)
-    #   set_offroad_alert_if_changed("Offroad_UpdateFailed", True, extra_text=extra_text)
-    # elif dt.days > DAYS_NO_CONNECTIVITY_MAX and update_failed_count > 1:
-    #   set_offroad_alert_if_changed("Offroad_UpdateFailed", False)
-    #   set_offroad_alert_if_changed("Offroad_ConnectivityNeededPrompt", False)
-    #   set_offroad_alert_if_changed("Offroad_ConnectivityNeeded", True)
-    # elif dt.days > DAYS_NO_CONNECTIVITY_PROMPT:
-    #   remaining_time = str(max(DAYS_NO_CONNECTIVITY_MAX - dt.days, 0))
-    #   set_offroad_alert_if_changed("Offroad_UpdateFailed", False)
-    #   set_offroad_alert_if_changed("Offroad_ConnectivityNeeded", False)
-    #   set_offroad_alert_if_changed("Offroad_ConnectivityNeededPrompt", True, extra_text=f"{remaining_time} days.")
-    # else:
-    #   set_offroad_alert_if_changed("Offroad_UpdateFailed", False)
-    #   set_offroad_alert_if_changed("Offroad_ConnectivityNeeded", False)
-    #   set_offroad_alert_if_changed("Offroad_ConnectivityNeededPrompt", False)
-
-    #startup_conditions["up_to_date"] = params.get("Offroad_ConnectivityNeeded") is None or params.get_bool("DisableUpdates")
+    startup_conditions["up_to_date"] = True #params.get("Offroad_ConnectivityNeeded") is None or params.get_bool("DisableUpdates")
     startup_conditions["not_uninstalling"] = not params.get_bool("DoUninstall")
     startup_conditions["accepted_terms"] = params.get("HasAcceptedTerms") == terms_version
 
@@ -471,12 +415,6 @@ def thermald_thread(end_event, hw_queue):
       if off_ts is None:
         off_ts = sec_since_boot()
 
-      if shutdown_trigger == 1 and sound_trigger == 1 and msg.deviceState.batteryStatus == "Discharging" and started_seen and (sec_since_boot() - off_ts) > 1 and getoff_alert == 1:
-        subprocess.Popen([mediaplayer + 'mediaplayer', '/data/openpilot/selfdrive/assets/addon/sound/eondetach_ko.wav'], shell = False, stdin=None, stdout=None, stderr=None, env = env, close_fds=True)
-        sound_trigger = 0
-      elif shutdown_trigger == 1 and sound_trigger == 1 and msg.deviceState.batteryStatus == "Discharging" and started_seen and (sec_since_boot() - off_ts) > 1 and getoff_alert == 2:
-        subprocess.Popen([mediaplayer + 'mediaplayer', '/data/openpilot/selfdrive/assets/addon/sound/eondetach_en.wav'], shell = False, stdin=None, stdout=None, stderr=None, env = env, close_fds=True)
-        sound_trigger = 0
       # shutdown if the battery gets lower than 3%, it's discharging, we aren't running for
       # more than a minute but we were running
       if shutdown_trigger == 1 and msg.deviceState.batteryStatus == "Discharging" and \
@@ -515,21 +453,6 @@ def thermald_thread(end_event, hw_queue):
     if hotspot_on_boot and not hotspot_run and sec_since_boot() > 80:
       os.system("service call wifi 37 i32 0 i32 1 &")
       hotspot_run = True
-
-    opkrwakeup = params.get_bool("OpkrWakeUp")
-    if opkrwakeup and not wakeuprunning:
-      cmd1 = '/data/openpilot/selfdrive/assets/addon/sound/wakeup.wav'
-      wakeuprunning = True
-      wakeupstarted = sec_since_boot()
-      subprocess.Popen([mediaplayer + 'mediaplayer', cmd1], shell = False, stdin=None, stdout=None, stderr=None, env = env, close_fds=True)
-    elif wakeuprunning:
-      if not opkrwakeup:
-        wakeuprunning = False
-        os.system("pkill -f mediaplayer")
-      elif sec_since_boot() - wakeupstarted > 40:
-        wakeuprunning = False
-        Params().put_bool("OpkrWakeUp", False)
-        os.system("pkill -f mediaplayer")
 
     # Offroad power monitoring
     power_monitor.calculate(peripheralState, onroad_conditions["ignition"])

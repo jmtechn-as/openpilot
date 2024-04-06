@@ -2578,34 +2578,6 @@
     </message>
 </context>
 <context>
-    <name>GetOffAlert</name>
-    <message>
-        <location filename="../qt/widgets/opkr.cc" line="5803"/>
-        <source>EON Detach Alert Sound</source>
-        <translation>장치 분리 알림음</translation>
-    </message>
-    <message>
-        <location filename="../qt/widgets/opkr.cc" line="5803"/>
-        <source>Device alert you a alarm to detach the EON when ignition off.(NO Alert/KOR/ENG)</source>
-        <translation>시동이 꺼지면 장치를 분리하도록 알림을 보냅니다.(없음/한국어/영어)</translation>
-    </message>
-    <message>
-        <location filename="../qt/widgets/opkr.cc" line="5861"/>
-        <source>None</source>
-        <translation>없음</translation>
-    </message>
-    <message>
-        <location filename="../qt/widgets/opkr.cc" line="5863"/>
-        <source>KOR</source>
-        <translation>한국어</translation>
-    </message>
-    <message>
-        <location filename="../qt/widgets/opkr.cc" line="5865"/>
-        <source>ENG</source>
-        <translation>영어</translation>
-    </message>
-</context>
-<context>
     <name>OPKRNaviSelect</name>
     <message>
         <location filename="../qt/widgets/opkr.cc" line="5869"/>
@@ -2614,8 +2586,8 @@
     </message>
     <message>
         <location filename="../qt/widgets/opkr.cc" line="5869"/>
-        <source>Select the navigation you want to use.(None/Mappy/iNavi/Waze/TMapE/WazeE)</source>
-        <translation>사용할 네비게이션을 선택합니다.(없음/맵피/아이나비/웨이즈/외부티맵/외부웨이즈), 외부 티맵이나 외부 웨이즈의 경우 OPKR Connect 어플과 함께 별도 단말기로 실행해야 합니다.</translation>
+        <source>Select the navigation you want to use.(None/Mappy)</source>
+        <translation>사용할 네비게이션을 선택합니다.(없음/맵피)</translation>
     </message>
     <message>
         <location filename="../qt/widgets/opkr.cc" line="5925"/>
@@ -3951,8 +3923,8 @@
     </message>
     <message>
         <location filename="../qt/widgets/opkr.h" line="868"/>
-        <source>Use 0.3 sec delay to enter setting menu. This is to prevent being touched in setting menu when you use external program(Mixplorer, etc)</source>
-        <translation>0.3초 지연을 사용하여 설정 메뉴로 들어갑니다. 외부 프로그램(Mixplor 등)을 사용할 때 설정 메뉴에서 터치되는 것을 방지하기 위한 것입니다.</translation>
+        <source>Use 0.2 sec delay to enter setting menu. This is to prevent being touched in setting menu when you use external program(Mixplorer, etc)</source>
+        <translation>0.2초 지연을 사용하여 설정 메뉴로 들어갑니다. 외부 프로그램(Mixplor 등)을 사용할 때 설정 메뉴에서 터치되는 것을 방지하기 위한 것입니다.</translation>
     </message>
 </context>
 <context>

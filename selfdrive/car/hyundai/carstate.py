@@ -43,7 +43,6 @@ class CarState(CarStateBase):
     self.gear_correction = Params().get_bool("JustDoGearD")
     self.fca11_message = Params().get_bool("FCA11Message")
     self.rd_conf = Params().get_bool("RadarDisable")
-    self.set_spd_five = Params().get_bool("SetSpeedFive")
     self.brake_check = False
     self.cancel_check = False
     
@@ -116,20 +115,10 @@ class CarState(CarStateBase):
             self.cruise_set_speed_kph = max(set_speed_kph, int(round(self.clu_Vanz)), (30 if not self.is_set_speed_in_mph else 20))
           return self.cruise_set_speed_kph
 
-      elif self.cruise_buttons == Buttons.RES_ACCEL and not self.cruiseState_standstill:   # up 
-        if self.set_spd_five:
-          set_speed_kph += 5
-          if set_speed_kph % 5 != 0:
-            set_speed_kph = int(round(set_speed_kph/5)*5)
-        else:
-          set_speed_kph += 1
+      elif self.cruise_buttons == Buttons.RES_ACCEL and not self.cruiseState_standstill:   # up
+        set_speed_kph += 1
       elif self.cruise_buttons == Buttons.SET_DECEL and not self.cruiseState_standstill:  # dn
-        if self.set_spd_five:
-          set_speed_kph -= 5
-          if set_speed_kph % 5 != 0:
-            set_speed_kph = int(round(set_speed_kph/5)*5)
-        else:
-          set_speed_kph -= 1
+        set_speed_kph -= 1
 
       if set_speed_kph <= 30 and not self.is_set_speed_in_mph:
         set_speed_kph = 30

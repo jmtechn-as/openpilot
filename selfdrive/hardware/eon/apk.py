@@ -8,7 +8,7 @@ from selfdrive.swaglog import cloudlog
 from common.spinner import Spinner
 import time
 
-android_packages = ("com.android.carrierconfig", "com.opkr.maphack", "com.mixplorer", "com.mnsoft.mappyobn", "com.waze", "com.google.android.inputmethod.korean", "com.gmd.hidesoftkeys", "com.android.chrome",)
+android_packages = ("com.android.carrierconfig", "com.opkr.maphack", "com.mixplorer", "com.mnsoft.mappyobn", "com.google.android.inputmethod.korean", "com.gmd.hidesoftkeys",)
 
 def get_installed_apks():
   dat = subprocess.check_output(["pm", "list", "packages", "-f"], encoding='utf8').strip().split("\n")
@@ -91,9 +91,6 @@ def update_apks(show_spinner=False):
         wanted_permissions = ["ACCESS_FINE_LOCATION", "READ_PHONE_STATE", "READ_EXTERNAL_STORAGE", "SYSTEM_ALERT_WINDOW"]
         for permission in wanted_permissions:
           pm_grant("com.mnsoft.mappyobn", "android.permission."+permission)
-      if app == "com.waze":
-        pm_grant("com.waze", "android.permission.ACCESS_FINE_LOCATION")
-        pm_grant("com.waze", "android.permission.SYSTEM_ALERT_WINDOW")
       if app == "com.google.android.inputmethod.korean":
         pm_grant("com.google.android.inputmethod.korean", "android.permission.BIND_INPUT_METHOD")
         system("am start com.google.android.inputmethod.korean/com.google.android.apps.inputmethod.libs.framework.core.LauncherActivity")
@@ -105,7 +102,6 @@ def update_apks(show_spinner=False):
         time.sleep(1)
         system("am start com.google.android.inputmethod.korean/com.google.android.apps.inputmethod.libs.framework.core.LauncherActivity")
         time.sleep(3)
-        system("reboot")
       if app == "com.gmd.hidesoftkeys":
         appops_set("com.gmd.hidesoftkeys", "SU", "allow")
         pm_grant("com.gmd.hidesoftkeys", "android.permission.SYSTEM_ALERT_WINDOW")

@@ -49,11 +49,8 @@ try:
 except:
   LANG_FILE='/data/openpilot/selfdrive/assets/addon/lang/events/main_en.txt'
   pass
-try:
-  IS_WAZE = Params().get("OPKRNaviSelect", encoding="utf8") == "3" or Params().get("OPKRNaviSelect", encoding="utf8") == "5"
-except:
-  IS_WAZE = False
-  pass
+
+IS_WAZE = False
 
 # opkr
 def tr(line_num: int):

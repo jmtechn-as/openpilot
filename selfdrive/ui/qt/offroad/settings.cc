@@ -49,12 +49,12 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       tr("Receive alerts to steer back into the lane when your vehicle drifts over a detected lane line without a turn signal activated while driving over 31 mph (50 km/h)."),
       "../assets/offroad/icon_warning.png",
     },
-    {
+    /*{
       "IsRHD",
       tr("Enable Right-Hand Drive"),
       tr("Allow openpilot to obey left-hand traffic conventions and perform driver monitoring on right driver seat."),
       "../assets/offroad/icon_openpilot_mirrored.png",
-    },
+    },*/
     {
       "IsMetric",
       tr("Use Metric System"),
@@ -82,12 +82,12 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
     },
 #endif
 
-    // {
-    //   "OpkrEnableDriverMonitoring",
-    //   tr("Enable Driver Monitoring"),
-    //   tr("Use the driver monitoring function."),
-    //   "../assets/offroad/icon_shell.png",
-    // },
+    {
+      "OpkrEnableDriverMonitoring",
+      tr("Enable Driver Monitoring"),
+      tr("Use the driver monitoring function."),
+      "../assets/offroad/icon_shell.png",
+    },
     {
       "OpkrEnableLogger",
       tr("Enable Driving Log Record"),
@@ -127,7 +127,7 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   addItem(new LabelControl(tr("Dongle ID"), getDongleId().value_or(tr("N/A"))));
   addItem(new LabelControl(tr("Serial"), params.get("HardwareSerial").c_str()));
 
-  addItem(new OpenpilotView());
+  //addItem(new OpenpilotView());
 
   // offroad-only buttons
 
@@ -136,6 +136,7 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   connect(dcamBtn, &ButtonControl::clicked, [=]() { emit showDriverView(); });
   addItem(dcamBtn);
 
+  /*
   if (!params.getBool("Passive")) {
     auto retrainingBtn = new ButtonControl(tr("Review Training Guide"), tr("REVIEW"), tr("Review the rules, features, and limitations of openpilot"));
     connect(retrainingBtn, &ButtonControl::clicked, [=]() {
@@ -153,7 +154,7 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
       RichTextDialog::alert(QString::fromStdString(txt), this);
     });
     addItem(regulatoryBtn);
-  }
+  }*/
 
   auto resetCalibBtn = new ButtonControl(tr("Reset Calibration"), tr("RESET"), " ");
   connect(resetCalibBtn, &ButtonControl::showDescription, this, &DevicePanel::updateCalibDescription);
@@ -169,6 +170,7 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   });
   addItem(resetCalibBtn);
 
+  /*
   auto translateBtn = new ButtonControl(tr("Change Language"), tr("CHANGE"), "");
   connect(translateBtn, &ButtonControl::clicked, [=]() {
     QMap<QString, QString> langs = getSupportedLanguages();
@@ -180,13 +182,14 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
     }
   });
   addItem(translateBtn);
+  */
 
   QObject::connect(parent, &SettingsWindow::offroadTransition, [=](bool offroad) {
     for (auto btn : findChildren<ButtonControl *>()) {
       btn->setEnabled(offroad);
     }
     resetCalibBtn->setEnabled(true);
-    translateBtn->setEnabled(true);
+    //translateBtn->setEnabled(true);
   });
 
   // power buttons
@@ -470,7 +473,6 @@ UIPanel::UIPanel(QWidget *parent) : QFrame(parent) {
   layout->addWidget(new AutoScreenOff());
   layout->addWidget(new BrightnessOffControl());
   layout->addWidget(new DoNotDisturbMode());  
-  layout->addWidget(new GetOffAlert());
   layout->addWidget(new BatteryChargingControlToggle());
   layout->addWidget(new ChargingMin());
   layout->addWidget(new ChargingMax());
@@ -502,16 +504,16 @@ UIPanel::UIPanel(QWidget *parent) : QFrame(parent) {
   layout->addWidget(new RunNaviOnBootToggle());
   layout->addWidget(new OPKRServerSelect());
   layout->addWidget(new OPKRServerAPI());
-  layout->addWidget(new MapboxEnabledToggle());
-  layout->addWidget(new OPKRMapboxStyle());
-  layout->addWidget(new GoogleMapEnabledToggle());
+  //layout->addWidget(new MapboxEnabledToggle());
+  //layout->addWidget(new OPKRMapboxStyle());
+  //layout->addWidget(new GoogleMapEnabledToggle());
   layout->addWidget(new OPKRTopTextView());
   layout->addWidget(new RPMAnimatedToggle());
   layout->addWidget(new RPMAnimatedMaxValue());
   layout->addWidget(new ShowStopLineToggle());
   layout->addWidget(new HoldForSettingToggle());
-  layout->addWidget(new RTShieldToggle());
-  layout->addWidget(new OSMOfflineUseToggle());
+  //layout->addWidget(new RTShieldToggle());
+  //layout->addWidget(new OSMOfflineUseToggle());
 }
 DrivingPanel::DrivingPanel(QWidget *parent) : QFrame(parent) {
   QVBoxLayout *layout = new QVBoxLayout(this);
@@ -537,7 +539,6 @@ DrivingPanel::DrivingPanel(QWidget *parent) : QFrame(parent) {
   layout->addWidget(new LeftCurvOffset());
   layout->addWidget(new RightCurvOffset());
   layout->addWidget(new BlindSpotDetectToggle());
-
   layout->addWidget(new CSteerWidget());
   layout->addWidget(new SteerAngleCorrection());
   layout->addWidget(new TurnSteeringDisableToggle());
@@ -582,9 +583,7 @@ DeveloperPanel::DeveloperPanel(QWidget *parent) : QFrame(parent) {
   layout->setSpacing(30);
 
   // OPKR
-  layout->addWidget(new DebugUiOneToggle());
-  layout->addWidget(new DebugUiTwoToggle());
-  layout->addWidget(new DebugUiThreeToggle());
+  layout->addWidget(new CarSelectCombo());
   layout->addWidget(new OPKRDebug());
   layout->addWidget(new ShowErrorToggle());
   layout->addWidget(new LongLogToggle());
@@ -601,14 +600,10 @@ DeveloperPanel::DeveloperPanel(QWidget *parent) : QFrame(parent) {
   layout->addWidget(new UFCModeEnabledToggle());
   layout->addWidget(new StockLKASEnabledatDisenagedStatusToggle());
   layout->addWidget(new C2WithCommaPowerToggle());
-  layout->addWidget(new JoystickModeToggle());
+  //layout->addWidget(new JoystickModeToggle());
   layout->addWidget(new NoSmartMDPSToggle());
   layout->addWidget(new UserSpecificFeature());
   layout->addWidget(new TimeZoneSelectCombo());
-
-  layout->addWidget(horizontal_line());
-  layout->addWidget(new CarSelectCombo());
-
   layout->addWidget(new CPandaGroup());
 }
 
@@ -619,41 +614,25 @@ TuningPanel::TuningPanel(QWidget *parent) : QFrame(parent) {
   layout->setSpacing(30);
 
   // OPKR
-  layout->addWidget(new LabelControl(tr("〓〓〓〓〓〓〓〓【 TUNING 】〓〓〓〓〓〓〓〓"), ""));
   layout->addWidget(new CameraOffset());
   layout->addWidget(new PathOffset());
-  layout->addWidget(horizontal_line());
-
   layout->addWidget(new SteerActuatorDelay());
-
   layout->addWidget(new TireStiffnessFactor());
   layout->addWidget(new SteerThreshold());
   layout->addWidget(new SteerLimitTimer());
-
   layout->addWidget(new LiveSteerRatioToggle());
   layout->addWidget(new LiveSRPercent());
   layout->addWidget(new SRBaseControl());
   layout->addWidget(new SRMaxControl());
-
-  layout->addWidget(horizontal_line());
   layout->addWidget(new VariableSteerMaxToggle());
   layout->addWidget(new SteerMax());
   layout->addWidget(new VariableSteerDeltaToggle());
   layout->addWidget(new SteerDeltaUp());
   layout->addWidget(new SteerDeltaDown());
-
-  layout->addWidget(horizontal_line());
   layout->addWidget(new ToAvoidLKASFaultBeyondToggle());
   layout->addWidget(new DesiredCurvatureLimit());
-
-  layout->addWidget(horizontal_line());
-
-  //layout->addWidget(new LabelControl("〓〓〓〓〓〓〓〓【 CONTROL 】〓〓〓〓〓〓〓〓", ""));
- // layout->addWidget(new LateralControl());
   layout->addWidget(new LiveTunePanelToggle());
-
   layout->addWidget(new CLateralControlGroup());
-  layout->addWidget(horizontal_line());
   layout->addWidget(new CLongControlGroup());
 
 }
@@ -716,11 +695,13 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
 
   sidebar_layout->addSpacing(45);
 
+/*
 #ifdef ENABLE_MAPS
   auto map_panel = new MapPanel(this);
   panels.push_back({tr("Navigation"), map_panel});
   QObject::connect(map_panel, &MapPanel::closeSettings, this, &SettingsWindow::closeSettings);
 #endif
+*/
 
   const int padding = panels.size() > 3 ? 0 : 15;
 

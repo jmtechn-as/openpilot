@@ -14,6 +14,7 @@
 #define BACKLIGHT_TS 10.00
 #define BACKLIGHT_OFFROAD 50
 
+#include <cstdlib>
 
 // Projects a point in car to space to the corresponding point in full frame
 // image space.
@@ -384,16 +385,6 @@ static void update_state(UIState *s) {
       scene.liveNaviData.opkr8 = lm_data.getOpkr8();
       scene.liveNaviData.opkr9 = lm_data.getOpkr9();
     }
-    if (scene.navi_select == 3) {
-      scene.liveNaviData.wazealertid = lm_data.getWazeAlertId();
-      scene.liveNaviData.wazealertdistance = lm_data.getWazeAlertDistance();
-      scene.liveNaviData.wazeroadspeedlimit = lm_data.getWazeRoadSpeedLimit();
-      scene.liveNaviData.wazecurrentspeed = lm_data.getWazeCurrentSpeed();
-      scene.liveNaviData.wazeroadname = lm_data.getWazeRoadName();
-      scene.liveNaviData.wazenavsign = lm_data.getWazeNavSign();
-      scene.liveNaviData.wazenavdistance = lm_data.getWazeNavDistance();
-      scene.liveNaviData.wazealerttype = lm_data.getWazeAlertType();
-    }
   }
   if (sm.updated("liveENaviData")) {
     scene.live_enavi_data = sm["liveENaviData"].getLiveENaviData();
@@ -422,16 +413,6 @@ static void update_state(UIState *s) {
       scene.liveENaviData.eopkr7 = lme_data.getOpkr7();
       scene.liveENaviData.eopkr8 = lme_data.getOpkr8();
       scene.liveENaviData.eopkr9 = lme_data.getOpkr9();
-    }
-    if (scene.navi_select == 5) {
-      scene.liveENaviData.ewazealertid = lme_data.getWazeAlertId();
-      scene.liveENaviData.ewazealertdistance = lme_data.getWazeAlertDistance();
-      scene.liveENaviData.ewazeroadspeedlimit = lme_data.getWazeRoadSpeedLimit();
-      scene.liveENaviData.ewazecurrentspeed = lme_data.getWazeCurrentSpeed();
-      scene.liveENaviData.ewazeroadname = lme_data.getWazeRoadName();
-      scene.liveENaviData.ewazenavsign = lme_data.getWazeNavSign();
-      scene.liveENaviData.ewazenavdistance = lme_data.getWazeNavDistance();
-      scene.liveENaviData.ewazealerttype = lme_data.getWazeAlertType();
     }
   }
   if (sm.updated("liveMapData")) {
@@ -526,15 +507,14 @@ static void update_status(UIState *s) {
   }
   started_prev = s->scene.started;
 
-  if (s->sm->frame % (5*UI_FREQ) == 0) {
-  	s->is_OpenpilotViewEnabled = Params().getBool("IsOpenpilotViewEnabled");
-  }
-
   Params params;
 
-  //opkr navi on boot
-  if (!s->scene.navi_on_boot && (s->sm->frame - s->scene.started_frame > 5*UI_FREQ)) {
-    if (params.getBool("OpkrRunNaviOnBoot") && params.getBool("ControlsReady") && (params.get("CarParams").size() > 0)) {
+  bool basicConditions = params.getBool("OpkrRunNaviOnBoot") &&
+                         params.getBool("ControlsReady") &&
+                         (params.get("CarParams").size() > 0);
+
+  if (!s->scene.navi_on_boot && s->sm->frame > 10 * UI_FREQ) {
+    if (basicConditions) {
       s->scene.navi_on_boot = true;
       s->scene.map_is_running = true;
       s->scene.map_on_top = true;
@@ -542,61 +522,35 @@ static void update_status(UIState *s) {
       params.putBool("OpkrMapEnable", true);
       if (s->scene.navi_select == 1) {
         system("am start com.mnsoft.mappyobn/com.mnsoft.mappy.MainActivity");
-      } else if (s->scene.navi_select == 2) {
-        system("am start com.thinkware.inaviair/com.thinkware.inaviair.UIActivity");
-      } else if (s->scene.navi_select == 3) {
-        system("am start com.waze/com.waze.MainActivity");
       }
-    } else if (s->sm->frame - s->scene.started_frame > 20*UI_FREQ) {
+    } else if (s->sm->frame > 20 * UI_FREQ) {
       s->scene.navi_on_boot = true;
     }
   }
-  if (!s->scene.move_to_background && (s->sm->frame - s->scene.started_frame > 20*UI_FREQ)) {
-    if (params.getBool("OpkrRunNaviOnBoot") && params.getBool("OpkrMapEnable") && params.getBool("ControlsReady") && (params.get("CarParams").size() > 0)) {
+
+  if (!s->scene.move_to_background && s->sm->frame > 15 * UI_FREQ) {
+    if (basicConditions && params.getBool("OpkrMapEnable")) {
       s->scene.move_to_background = true;
       s->scene.map_on_top = false;
       s->scene.map_on_overlay = true;
       system("am start --activity-task-on-home com.opkr.maphack/com.opkr.maphack.MainActivity");
-    } else if (s->sm->frame - s->scene.started_frame > 30*UI_FREQ) {
+    } else if (s->sm->frame > 30 * UI_FREQ) {
       s->scene.move_to_background = true;
     }
   }
 
-  // waze refresh after alert to keep going alerts, this is an workaround till to find out better solution.
-  if (s->scene.navi_select == 3) {
-    if (s->scene.map_is_running && s->scene.map_on_overlay && s->scene.liveNaviData.wazealertdistance >= 200) {
-      s->scene.waze_stop_frame = s->sm->frame;
-      s->scene.waze_stop = true;
-      s->scene.waze_stop2 = false;
-    } else if (s->scene.waze_stop && (s->sm->frame - s->scene.waze_stop_frame > 1*UI_FREQ)) {
-      s->scene.waze_stop = false;
-      s->scene.waze_stop2 = true;
-      s->scene.map_on_top = true;
-      s->scene.map_on_overlay = false;
-      system("am start --activity-task-on-home com.waze/com.waze.MainActivity");
-    } else if (s->scene.map_is_running && !s->scene.map_on_overlay && s->scene.waze_stop2 && s->scene.liveNaviData.wazealertdistance <= 0) {
-      s->scene.waze_stop = false;
-      s->scene.waze_stop2 = false;
-      s->scene.map_on_top = false;
-      s->scene.map_on_overlay = true;
-      system("am start --activity-task-on-home com.opkr.maphack/com.opkr.maphack.MainActivity");
-    } else if (!s->scene.waze_stop && !s->scene.waze_stop2 && s->scene.liveNaviData.wazealertdistance < 200 && s->scene.liveNaviData.wazealertdistance > 0) {
-      s->scene.waze_stop = false;
-      s->scene.waze_stop2 = true;
-      s->scene.map_on_top = true;
-      s->scene.map_on_overlay = false;
-      system("am start --activity-task-on-home com.waze/com.waze.MainActivity");
+  if (!s->scene.auto_gitpull) {
+    if (s->sm->frame - s->scene.started_frame > 15 * UI_FREQ) {
+      if (params.getBool("GitPullOnBoot")) {
+        s->scene.auto_gitpull = true;
+        system("/data/openpilot/selfdrive/assets/addon/script/gitpull.sh &");
+      }
     }
-  }
-
-  // this is useful to save compiling time before depart when you use remote ignition
-  if (!s->scene.auto_gitpull && (s->sm->frame - s->scene.started_frame > 15*UI_FREQ)) {
-    if (params.getBool("GitPullOnBoot")) {
-      s->scene.auto_gitpull = true;
-      system("/data/openpilot/selfdrive/assets/addon/script/gitpull.sh &");
-    } else if (s->sm->frame - s->scene.started_frame > 20*UI_FREQ) {
-      s->scene.auto_gitpull = true;
-      system("/data/openpilot/selfdrive/assets/addon/script/gitcommit.sh &");
+    if (s->sm->frame - s->scene.started_frame > 20 * UI_FREQ) {
+      if (!params.getBool("GitPullOnBoot")) {
+        s->scene.auto_gitpull = true;
+        system("/data/openpilot/selfdrive/assets/addon/script/gitcommit.sh &");
+      }
     }
   }
 
@@ -682,7 +636,6 @@ QUIState::QUIState(QObject *parent) : QObject(parent) {
   ui_state.wide_camera = Hardware::TICI() ? params.getBool("EnableWideCamera") : false;
   ui_state.has_prime = params.getBool("HasPrime");
   ui_state.sidebar_view = false;
-  ui_state.is_OpenpilotViewEnabled = params.getBool("IsOpenpilotViewEnabled");
 
   // update timer
   timer = new QTimer(this);

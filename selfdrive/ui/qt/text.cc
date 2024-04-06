@@ -17,7 +17,7 @@
 #include "selfdrive/common/params.h"
 
 int main(int argc, char *argv[]) {
-  initApp();
+  initApp(argc, argv);
   QApplication a(argc, argv);
   QWidget window;
   setMainWindow(&window);

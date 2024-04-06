@@ -181,7 +181,6 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"Offroad_UnofficialHardware", CLEAR_ON_MANAGER_START},
     {"Offroad_UpdateFailed", CLEAR_ON_MANAGER_START},
     {"GitCommitRemote", PERSISTENT},
-    {"IsOpenpilotViewEnabled", CLEAR_ON_MANAGER_START},
     {"OpkrAutoShutdown", PERSISTENT},
     {"OpkrForceShutdown", PERSISTENT},
     {"OpkrForceShutdownTrigger", PERSISTENT},
@@ -190,7 +189,6 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"OpkrUIVolumeBoost", PERSISTENT},
     {"OpkrEnableDriverMonitoring", PERSISTENT},
     {"OpkrEnableLogger", PERSISTENT},
-    {"OpkrEnableGetoffAlert", PERSISTENT},
     {"OpkrAutoResume", PERSISTENT},
     {"OpkrVariableCruise", PERSISTENT},
     {"OpkrLaneChangeSpeed", PERSISTENT},
@@ -397,7 +395,6 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"CruiseSetwithRoadLimitSpeedEnabled", PERSISTENT},
     {"CruiseSetwithRoadLimitSpeedOffset", PERSISTENT},
     {"OPKRDebug", PERSISTENT},
-    {"SetSpeedFive", PERSISTENT},
 };
 
 } // namespace

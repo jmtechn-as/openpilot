@@ -351,10 +351,6 @@ void HomeWindow::mousePressEvent(QMouseEvent* e)
     if (QUIState::ui_state.scene.map_is_running) {
       if (QUIState::ui_state.scene.navi_select == 1) {
         QProcess::execute("am start com.mnsoft.mappyobn/com.mnsoft.mappy.MainActivity");
-      } else if (QUIState::ui_state.scene.navi_select == 2) {
-        QProcess::execute("am start com.thinkware.inaviair/com.thinkware.inaviair.UIActivity");
-      } else if (QUIState::ui_state.scene.navi_select == 3) {
-        QProcess::execute("am start com.waze/com.waze.MainActivity");
       }
       QUIState::ui_state.scene.map_on_top = true;
       QUIState::ui_state.scene.map_is_running = true;
@@ -363,10 +359,6 @@ void HomeWindow::mousePressEvent(QMouseEvent* e)
     } else {
       if (QUIState::ui_state.scene.navi_select == 1) {
         QProcess::execute("pkill com.mnsoft.mappyobn");
-      } else if (QUIState::ui_state.scene.navi_select == 2) {
-        QProcess::execute("pkill com.thinkware.inaviair");
-      } else if (QUIState::ui_state.scene.navi_select == 3) {
-        QProcess::execute("pkill com.waze");
       }
       QUIState::ui_state.scene.map_on_top = false;
       QUIState::ui_state.scene.map_on_overlay = false;
@@ -408,10 +400,6 @@ void HomeWindow::mousePressEvent(QMouseEvent* e)
     effect3.play();
     if (QUIState::ui_state.scene.navi_select == 1) {
       QProcess::execute("am start --activity-task-on-home com.mnsoft.mappyobn/com.mnsoft.mappy.MainActivity");
-    } else if (QUIState::ui_state.scene.navi_select == 2) {
-      QProcess::execute("am start --activity-task-on-home com.thinkware.inaviair/com.thinkware.inaviair.UIActivity");
-    } else if (QUIState::ui_state.scene.navi_select == 3) {
-      QProcess::execute("am start --activity-task-on-home com.waze/com.waze.MainActivity");
     }
     QUIState::ui_state.scene.map_on_top = true;
     QUIState::ui_state.scene.map_on_overlay = false;
