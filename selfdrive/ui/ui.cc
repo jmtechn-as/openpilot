@@ -330,8 +330,8 @@ UIState::UIState(QObject *parent) : QObject(parent) {
   sm = std::make_unique<SubMaster, const std::initializer_list<const char *>>({
     "modelV2", "controlsState", "lateralPlan", "liveCalibration", "radarState", "deviceState", "roadCameraState",
     "pandaStates", "carParams", "driverMonitoringState", "sensorEvents", "carState", "liveLocationKalman",
-    "wideRoadCameraState",
-    "gpsLocationExternal", "carControl", "liveParameters", "lateralPlan", "roadLimitSpeed",
+    "wideRoadCameraState","liveTorqueParameters", 
+    "gpsLocationExternal", "carControl", "liveParameters", "lateralPlan", "roadLimitSpeed", "longitudinalPlan",
   });
 
   Params params;

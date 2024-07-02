@@ -1,5 +1,7 @@
-이온에 바로 설치 가능
-https://smiskol.com/fork/moncler0578/GENESIS
+
+**This is based on xx979xx for Hyundai, Kia, Genesis.**
+
+https://github.com/xx979xx/openpilot
 
 It is open source and inherits MIT license.  By installing this software you accept all responsibility for anything that might occur while you use it.  All contributors to this fork are not liable.  <b>Use at your own risk.</b>
 

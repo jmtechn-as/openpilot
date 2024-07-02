@@ -209,9 +209,6 @@ struct CarState {
   # clutch (manual transmission only)
   clutchPressed @28 :Bool;
 
-  # which packets this state came from
-  canMonoTimes @12: List(UInt64);
-
   # blindspot sensors
   leftBlindspot @33 :Bool; # Is there something blocking the left lane change
   rightBlindspot @34 :Bool; # Is there something blocking the right lane change
@@ -289,6 +286,7 @@ struct CarState {
   errorsDEPRECATED @0 :List(CarEvent.EventName);
   brakeLights @19 :Bool;
   steeringRateLimitedDEPRECATED @29 :Bool;
+  canMonoTimesDEPRECATED @12: List(UInt64);
 }
 
 # ******* radar state @ 20hz *******
@@ -296,9 +294,6 @@ struct CarState {
 struct RadarData @0x888ad6581cf0aacb {
   errors @0 :List(Error);
   points @1 :List(RadarPoint);
-
-  # which packets this state came from
-  canMonoTimes @2 :List(UInt64);
 
   enum Error {
     canError @0;
@@ -323,6 +318,9 @@ struct RadarData @0x888ad6581cf0aacb {
     # some radars flag measurements VS estimates
     measured @6 :Bool;
   }
+
+  # deprecated
+  canMonoTimesDEPRECATED @2 :List(UInt64);
 }
 
 # ******* car controls @ 100hz *******
@@ -501,10 +499,9 @@ struct CarParams {
   stoppingDecelRate @52 :Float32; # m/s^2/s while trying to stop
   startAccel @32 :Float32; # Required acceleration to get car moving
   startingState @78 :Bool; # Does this car make use of special starting state
-
   steerActuatorDelay @36 :Float32; # Steering wheel actuator delay in seconds
-  longitudinalActuatorDelayLowerBound @61 :Float32; # Gas/Brake actuator delay in seconds, lower bound
-  longitudinalActuatorDelayUpperBound @58 :Float32; # Gas/Brake actuator delay in seconds, upper bound
+  longitudinalActuatorDelay @58 :Float32; # Gas/Brake actuator delay in seconds, upper bound
+  
   openpilotLongitudinalControl @37 :Bool; # is openpilot doing the longitudinal control?
   carVin @38 :Text; # VIN number queried during fingerprinting
   dashcamOnly @41: Bool;
@@ -557,6 +554,8 @@ struct CarParams {
     kd @4 :Float32;
     friction @5 :Float32;
     steeringAngleDeadzoneDeg @6 :Float32;
+    latAccelFactor @7 :Float32;
+    latAccelOffset @8 :Float32;
   }
 
   struct LongitudinalPIDTuning {
@@ -699,4 +698,5 @@ struct CarParams {
   minSpeedCanDEPRECATED @51 :Float32;
   communityFeatureDEPRECATED @46: Bool;
   startingAccelRateDEPRECATED @53 :Float32;
+  longitudinalActuatorDelayLowerBoundDEPRECATEDDEPRECATED @61 :Float32;
 }

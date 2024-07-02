@@ -25,6 +25,7 @@
 #include "selfdrive/ui/ui.h"
 #include "selfdrive/ui/qt/util.h"
 #include "selfdrive/ui/qt/qt_window.h"
+#include "selfdrive/ui/qt/ntune/ntunepannel.h"
 
 #include <QProcess> // opkr
 #include <QDateTime> // opkr
@@ -191,6 +192,8 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   connect(resetCalibBtn, &ButtonControl::clicked, [&]() {
     if (ConfirmationDialog::confirm("캘리브레이션 리셋을 실행하시겠습니까?", this)) {
       params.remove("CalibrationParams");
+      params.remove("LiveTorqueParameters");
+      params.remove("LiveTorqueCarParams");
     }
   });
   addItem(resetCalibBtn);
@@ -537,6 +540,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
 
   QList<QPair<QString, QWidget *>> panels = {
     {"장치", device},
+    {"주행값", new nTuneMainWidget(this)},
     {"VIP메뉴", new VIPPanel(this)},
     {"TUNING", new TUNINGPanel(this)},
     {"네트워크", network_panel(this)},
@@ -700,6 +704,18 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
                                             "SCC 설정 시 곡률에 따른 속도 감속 기능을 사용",
                                             "../assets/offroad/icon_road.png",
                                             this));
+
+  toggles.append(new ParamControl("LaneChangeEnabled",
+                                            "Enable Lane Change Assist",
+                                            "Perform assisted lane changes with openpilowards your desired lane.",
+                                            "../assets/offroad/icon_road.png",
+                                            this));
+
+  toggles.append(new ParamControl("AutoLaneChangeEnabled",
+                                            "Enable Auto Lane Change(Nudgeless)",
+                                            "Automatically changes lanes at turn signal.",
+                                            "../assets/offroad/icon_road.png",
+                                            this));
   
   toggles.append(new ParamControl("TurnVisionControl",
                                             "비젼기반 커브감속",
@@ -794,12 +810,7 @@ TUNINGPanel::TUNINGPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new ParamControl("Steer_SRTune", "SR가변 사용", "SR속도 가변사용(반드시 활성화할것)", "../assets/offroad/icon_road.png", this));
     toggleLayout->addWidget(new CValueControl("Steer_SRTune_v", "SR가변 비율", "SR가변시 비율값(추천:95)", "../assets/offroad/icon_road.png", 80, 120, 1));
     toggleLayout->addWidget(new CValueControl("MaxAngleFrames", "MaxAngleFrames(89)", "89:기본, lkas fault 발생시 87:사용", "../assets/offroad/icon_road.png", 80, 100, 1));
-    toggleLayout->addWidget(new LaneChangeSpeed());
-    toggleLayout->addWidget(new SteerActuatorDelay());
-    toggleLayout->addWidget(new CameraOffset());
-    toggleLayout->addWidget(new PathOffset());
-    toggleLayout->addWidget(new CloseToRoadEdgeToggle());
-    toggleLayout->addWidget(new OPKREdgeOffset());
+    toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new ParamControl("AverageDesiredCurvature", "Average Desired Curvature", "Use for smoother handling of curves.", "../assets/offroad/icon_road.png", this));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new BrightnessControl());
@@ -809,38 +820,14 @@ TUNINGPanel::TUNINGPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new RoadEdgesWidth());
     toggleLayout->addWidget(new BlindspotLineWidth());
     toggleLayout->addWidget(horizontal_line());
-    toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new LabelControl("〓〓〓〓〓〓〓〓【 롱컨메뉴 】〓〓〓〓〓〓〓〓", ""));
     toggleLayout->addWidget(new CValueControl("MixRadarInfo", "MixRadarInfo for SCC Rardar", "0:Not used,1:Use", "../assets/offroad/icon_shell.png", 0, 1, 1));
-    toggleLayout->addWidget(new CValueControl("StopDistance", "StopDistance(600cm)", "선행차와 정지하는 거리를 입력합니다.", "../assets/offroad/icon_road.png", 200, 1000, 50));
-    toggleLayout->addWidget(new CValueControl("XEgoObstacleCost", "X_EGO_COST(5)", "증가할수록 정지선정지가 정확해지나, 급감속이 강해집니다.", "../assets/offroad/icon_road.png", 3, 50, 1));
-    toggleLayout->addWidget(new CValueControl("JEgoCost", "J_EGO_COST(5)", "", "../assets/offroad/icon_road.png", 4, 10, 1));
-    toggleLayout->addWidget(new CValueControl("AChangeCost", "A_CHANGE_COST(200)", "적으면 선행차에 대한 반응이 강해집니다. ", "../assets/offroad/icon_road.png", 20, 400, 10));
-    toggleLayout->addWidget(new CValueControl("DangerZoneCost", "DANGER_ZONE_COST(100)", "", "../assets/offroad/icon_road.png", 0, 400, 10));
+    toggleLayout->addWidget(new CValueControl("ALeadTau", "ALeadTaux0.01(150)", "값이 작아지면 선행차 가속도에 민감", "../assets/offroad/icon_road.png", 0, 500, 5));
+    toggleLayout->addWidget(new CValueControl("ALeadTauStart", "ALeadTauStartx0.01(50)", "값이 작아지면 선행차 가속도에 민감", "../assets/offroad/icon_road.png", 5, 80, 5));
     toggleLayout->addWidget(new CValueControl("LeadDangerFactor", "LEAD_DANGER_FACTOR(80)", "", "../assets/offroad/icon_road.png", 75, 100, 1));
-    //toggleLayout->addWidget(new CValueControl("LongitudinalTuningKpV", "P Gain(50)", "", "../assets/offroad/icon_road.png", 20, 100, 5));
-    //toggleLayout->addWidget(new CValueControl("LongitudinalTuningKiV", "I Gain(0)", "", "../assets/offroad/icon_road.png", 0, 2000, 5));
-    toggleLayout->addWidget(new CValueControl("LongitudinalActuatorDelayLowerBound", "_LADLowerBound(40)", "", "../assets/offroad/icon_road.png", 0, 100, 10));
-    toggleLayout->addWidget(new CValueControl("LongitudinalActuatorDelayUpperBound", "_LADUpperBound(40)", "", "../assets/offroad/icon_road.png", 0, 100, 10));
-    toggleLayout->addWidget(horizontal_line());
-    toggleLayout->addWidget(new CValueControl("CruiseMaxVals1", "ACCEL:0~10km/h(165)", "속도별 가속도를 지정합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 1, 250, 5));
-    toggleLayout->addWidget(new CValueControl("CruiseMaxVals2", "ACCEL:10~20km/h(170)", "속도별 가속도를 지정합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 1, 250, 5));
-    toggleLayout->addWidget(new CValueControl("CruiseMaxVals3", "ACCEL:20~30km/h(125)", "속도별 가속도를 지정합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 1, 200, 5));
-    toggleLayout->addWidget(new CValueControl("CruiseMaxVals4", "ACCEL:30~40km/h(105)", "속도별 가속도를 지정합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 1, 150, 5));
-    toggleLayout->addWidget(new CValueControl("CruiseMaxVals5", "ACCEL:40~50km/h(60)", "속도별 가속도를 지정합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 1, 100, 5));
-    toggleLayout->addWidget(new CValueControl("CruiseMaxVals6", "ACCEL:50~70km/h(45)", "속도별 가속도를 지정합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 1, 70, 1));
-    toggleLayout->addWidget(new CValueControl("CruiseMaxVals7", "ACCEL:70~90km/h(30)", "속도별 가속도를 지정합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 1, 60, 1));
-    toggleLayout->addWidget(new CValueControl("CruiseMaxVals8", "ACCEL:90~110km/h(27)", "속도별 가속도를 지정합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 1, 50, 1));
-    toggleLayout->addWidget(new CValueControl("CruiseMaxVals9", "ACCEL:110~130km/h(25)", "속도별 가속도를 지정합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 1, 40, 1));
-    toggleLayout->addWidget(new CValueControl("CruiseMaxVals10", "ACCEL:130km/h이상(12)", "속도별 가속도를 지정합니다.(x0.01m/s^2)", "../assets/offroad/icon_road.png", 1, 30, 1));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrlStart", "과속카메라감속 시작 시간(22초)", "감속시작시점. 값이 크면 감속을 카메라에서 멀리 시작", "../assets/offroad/icon_road.png", 10, 50, 1));
     toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrlEnd", "과속카메라감속 완료 시간(6초)", "감속완료시점. 값이 크면 카메라에서 멀리 감속 완료", "../assets/offroad/icon_road.png", 3, 20, 1));
-    toggleLayout->addWidget(horizontal_line());
-    //toggleLayout->addWidget(new ParamControl("ApplyLongDynamicCost", "차량간격유지 응답속도(OFF)", "전방차량의 간격을 최대한 유지하도록 응답속도가 빨라집니다.", "../assets/offroad/icon_road.png", this));
-    //toggleLayout->addWidget(new CValueControl("ApplyDynamicTFollow", "차량간격제어:상대속도-(110%)", "선행차와 점점 가까와지면 차량거리를 안전하게 증가시키도록 합니다.", "../assets/offroad/icon_road.png", 100, 300, 1));
-    //toggleLayout->addWidget(new CValueControl("ApplyDynamicTFollowApart", "차량간격제어:상대속도+(95%)", "선행차와 점점 멀어지면 차량거리를 줄이도록 합니다.", "../assets/offroad/icon_road.png", 20, 100, 1 ));
-    //toggleLayout->addWidget(new CValueControl("ApplyDynamicTFollowDecel", "차량간격제어:감속(110%)", "차량이 급감속 할 수록 차량간격을 벌리도록 제어합니다.", "../assets/offroad/icon_road.png", 100, 300, 1));
 
 }
 
@@ -918,397 +905,6 @@ void CValueControl::refresh()
     label.setText(QString::fromStdString(Params().get(m_params.toStdString())));
     btnminus.setText("－");
     btnplus.setText("＋");
-}
-
-//LaneChangeSpeed
-LaneChangeSpeed::LaneChangeSpeed() : AbstractControl("LanChangeSpeed",
-                                                     "On/Off lane change.",
-                                                     "../assets/offroad/icon_shell.png") {
-
-  label.setAlignment(Qt::AlignVCenter|Qt::AlignRight);
-  label.setStyleSheet("color: #e0e879");
-  hlayout->addWidget(&label);
-
-  btnminus.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-  btnplus.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-  btnminus.setFixedSize(150, 100);
-  btnplus.setFixedSize(150, 100);
-  btnminus.setText("－");
-  btnplus.setText("＋");
-  hlayout->addWidget(&btnminus);
-  hlayout->addWidget(&btnplus);
-
-  QObject::connect(&btnminus, &QPushButton::clicked, [=]() {
-    auto str = QString::fromStdString(params.get("OpkrLaneChangeSpeed"));
-    int value = str.toInt();
-    value = value - 1;
-    if (value <= -1) {
-      value = 100;
-    }
-    QString values = QString::number(value);
-    params.put("OpkrLaneChangeSpeed", values.toStdString());
-    refresh();
-  });
-  
-  QObject::connect(&btnplus, &QPushButton::clicked, [=]() {
-    auto str = QString::fromStdString(params.get("OpkrLaneChangeSpeed"));
-    int value = str.toInt();
-    value = value + 1;
-    if (value >= 101) {
-      value = 0;
-    }
-    QString values = QString::number(value);
-    params.put("OpkrLaneChangeSpeed", values.toStdString());
-    refresh();
-  });
-  refresh();
-}
-
-void LaneChangeSpeed::refresh() {
-  QString option = QString::fromStdString(params.get("OpkrLaneChangeSpeed"));
-  if (option == "0") {
-    label.setText(tr("Off"));
-  } else {
-    label.setText(QString::fromStdString(params.get("OpkrLaneChangeSpeed")));
-  }
-}
-
-SteerActuatorDelay::SteerActuatorDelay() : AbstractControl("SteerActuatorDelay",
-                                                           "Adjust the SteerActuatorDelay value.",
-                                                           "../assets/offroad/icon_openpilot.png") {
-
-  label.setAlignment(Qt::AlignVCenter|Qt::AlignRight);
-  label.setStyleSheet("color: #e0e879");
-  hlayout->addWidget(&label);
-
-  btnminus.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-  btnplus.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-  btnminus.setFixedSize(150, 100);
-  btnplus.setFixedSize(150, 100);
-  btnminus.setText("－");
-  btnplus.setText("＋");
-  hlayout->addWidget(&btnminus);
-  hlayout->addWidget(&btnplus);
-
-  QObject::connect(&btnminus, &QPushButton::clicked, [=]() {
-    auto str = QString::fromStdString(params.get("SteerActuatorDelayAdj"));
-    int value = str.toInt();
-    value = value - 1;
-    if (value <= 1) {
-      value = 1;
-    }
-    QString values = QString::number(value);
-    params.put("SteerActuatorDelayAdj", values.toStdString());
-    refresh();
-  });
-  
-  QObject::connect(&btnplus, &QPushButton::clicked, [=]() {
-    auto str = QString::fromStdString(params.get("SteerActuatorDelayAdj"));
-    int value = str.toInt();
-    value = value + 1;
-    if (value >= 100) {
-      value = 100;
-    }
-    QString values = QString::number(value);
-    params.put("SteerActuatorDelayAdj", values.toStdString());
-    refresh();
-  });
-  refresh();
-}
-
-void SteerActuatorDelay::refresh() {
-  auto strs = QString::fromStdString(params.get("SteerActuatorDelayAdj"));
-  int valuei = strs.toInt();
-  float valuef = valuei * 0.01;
-  QString valuefs = QString::number(valuef);
-  label.setText(QString::fromStdString(valuefs.toStdString()));
-}
-
-OPKREdgeOffset::OPKREdgeOffset() : AbstractControl("", 
-                                                   "+ value to move car to left, - value to move car to right on each lane.",
-                                                   "") {
-
-  labell1.setAlignment(Qt::AlignVCenter|Qt::AlignLeft);
-  labell1.setText(tr("LeftEdge: "));
-  hlayout->addWidget(&labell1);
-  labell.setAlignment(Qt::AlignVCenter|Qt::AlignLeft);
-  labell.setStyleSheet("color: #e0e879");
-  hlayout->addWidget(&labell);
-  btnminusl.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-  btnplusl.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-  btnminusl.setFixedSize(80, 100);
-  btnplusl.setFixedSize(80, 100);
-  hlayout->addWidget(&btnminusl);
-  hlayout->addWidget(&btnplusl);
-
-  labelr1.setAlignment(Qt::AlignVCenter|Qt::AlignRight);
-  labelr1.setText(tr("RightEdge: "));
-  hlayout->addWidget(&labelr1);
-  labelr.setAlignment(Qt::AlignVCenter|Qt::AlignLeft);
-  labelr.setStyleSheet("color: #e0e879");
-  hlayout->addWidget(&labelr);
-  btnminusr.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-  btnplusr.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-  btnminusr.setFixedSize(80, 100);
-  btnplusr.setFixedSize(80, 100);
-  hlayout->addWidget(&btnminusr);
-  hlayout->addWidget(&btnplusr);
-
-  btnminusl.setText("－");
-  btnplusl.setText("＋");
-  btnminusr.setText("－");
-  btnplusr.setText("＋");
-
-  QObject::connect(&btnminusl, &QPushButton::clicked, [=]() {
-    auto str = QString::fromStdString(params.get("LeftEdgeOffset"));
-    int value = str.toInt();
-    value = value - 1;
-    if (value <= -50) {
-      value = -50;
-    }
-    QString values = QString::number(value);
-    params.put("LeftEdgeOffset", values.toStdString());
-    refreshl();
-  });
-  
-  QObject::connect(&btnplusl, &QPushButton::clicked, [=]() {
-    auto str = QString::fromStdString(params.get("LeftEdgeOffset"));
-    int value = str.toInt();
-    value = value + 1;
-    if (value >= 50) {
-      value = 50;
-    }
-    QString values = QString::number(value);
-    params.put("LeftEdgeOffset", values.toStdString());
-    refreshl();
-  });
-  QObject::connect(&btnminusr, &QPushButton::clicked, [=]() {
-    auto str = QString::fromStdString(params.get("RightEdgeOffset"));
-    int value = str.toInt();
-    value = value - 1;
-    if (value <= -50) {
-      value = -50;
-    }
-    QString values = QString::number(value);
-    params.put("RightEdgeOffset", values.toStdString());
-    refreshr();
-  });
-  
-  QObject::connect(&btnplusr, &QPushButton::clicked, [=]() {
-    auto str = QString::fromStdString(params.get("RightEdgeOffset"));
-    int value = str.toInt();
-    value = value + 1;
-    if (value >= 50) {
-      value = 50;
-    }
-    QString values = QString::number(value);
-    params.put("RightEdgeOffset", values.toStdString());
-    refreshr();
-  });
-  refreshl();
-  refreshr();
-}
-
-void OPKREdgeOffset::refreshl() {
-  auto strs = QString::fromStdString(params.get("LeftEdgeOffset"));
-  int valuei = strs.toInt();
-  float valuef = valuei * 0.01;
-  QString valuefs = QString::number(valuef);
-  labell.setText(QString::fromStdString(valuefs.toStdString()));
-}
-
-void OPKREdgeOffset::refreshr() {
-  auto strs = QString::fromStdString(params.get("RightEdgeOffset"));
-  int valuei = strs.toInt();
-  float valuef = valuei * 0.01;
-  QString valuefs = QString::number(valuef);
-  labelr.setText(QString::fromStdString(valuefs.toStdString()));
-}
-
-CameraOffset::CameraOffset() : AbstractControl("CameraOffset", 
-                                               "+value:Move Left, -value:Move Right", 
-                                               "../assets/offroad/icon_road.png") {
-
-  label.setAlignment(Qt::AlignVCenter|Qt::AlignRight);
-  label.setStyleSheet("color: #e0e879");
-  hlayout->addWidget(&label);
-
-  btnminus.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-  btnplus.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-  btnminus.setFixedSize(150, 100);
-  btnplus.setFixedSize(150, 100);
-  btnminus.setText("－");
-  btnplus.setText("＋");
-  hlayout->addWidget(&btnminus);
-  hlayout->addWidget(&btnplus);
-
-  QObject::connect(&btnminus, &QPushButton::clicked, [=]() {
-    auto str = QString::fromStdString(params.get("CameraOffsetAdj"));
-    int value = str.toInt();
-    value = value - 5;
-    if (value <= -1000) {
-      value = -1000;
-    }
-    QString values = QString::number(value);
-    params.put("CameraOffsetAdj", values.toStdString());
-    refresh();
-  });
-  
-  QObject::connect(&btnplus, &QPushButton::clicked, [=]() {
-    auto str = QString::fromStdString(params.get("CameraOffsetAdj"));
-    int value = str.toInt();
-    value = value + 5;
-    if (value >= 1000) {
-      value = 1000;
-    }
-    QString values = QString::number(value);
-    params.put("CameraOffsetAdj", values.toStdString());
-    refresh();
-  });
-  refresh();
-}
-
-void CameraOffset::refresh() {
-  auto strs = QString::fromStdString(params.get("CameraOffsetAdj"));
-  int valuei = strs.toInt();
-  float valuef = valuei * 0.001;
-  QString valuefs = QString::number(valuef);
-  label.setText(QString::fromStdString(valuefs.toStdString()));
-}
-
-PathOffset::PathOffset() : AbstractControl("PathOffset",
-                                           "+value:Move left, -value:Move right", 
-                                           "../assets/offroad/icon_road.png") {
-
-  label.setAlignment(Qt::AlignVCenter|Qt::AlignRight);
-  label.setStyleSheet("color: #e0e879");
-  hlayout->addWidget(&label);
-
-  btnminus.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-  btnplus.setStyleSheet(R"(
-    padding: 0;
-    border-radius: 50px;
-    font-size: 35px;
-    font-weight: 500;
-    color: #E4E4E4;
-    background-color: #393939;
-  )");
-  btnminus.setFixedSize(150, 100);
-  btnplus.setFixedSize(150, 100);
-  btnminus.setText("－");
-  btnplus.setText("＋");
-  hlayout->addWidget(&btnminus);
-  hlayout->addWidget(&btnplus);
-
-  QObject::connect(&btnminus, &QPushButton::clicked, [=]() {
-    auto str = QString::fromStdString(params.get("PathOffsetAdj"));
-    int value = str.toInt();
-    value = value - 5;
-    if (value <= -1000) {
-      value = -1000;
-    }
-    QString values = QString::number(value);
-    params.put("PathOffsetAdj", values.toStdString());
-    refresh();
-  });
-  
-  QObject::connect(&btnplus, &QPushButton::clicked, [=]() {
-    auto str = QString::fromStdString(params.get("PathOffsetAdj"));
-    int value = str.toInt();
-    value = value + 5;
-    if (value >= 1000) {
-      value = 1000;
-    }
-    QString values = QString::number(value);
-    params.put("PathOffsetAdj", values.toStdString());
-    refresh();
-  });
-  refresh();
-}
-
-void PathOffset::refresh() {
-  auto strs = QString::fromStdString(params.get("PathOffsetAdj"));
-  int valuei = strs.toInt();
-  float valuef = valuei * 0.001;
-  QString valuefs = QString::number(valuef);
-  label.setText(QString::fromStdString(valuefs.toStdString()));
 }
 
 // Lane Lines Width

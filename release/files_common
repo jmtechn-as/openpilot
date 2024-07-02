@@ -39,9 +39,6 @@ common/spinner.py
 common/text_window.py
 common/SConscript
 
-common/kalman/.gitignore
-common/kalman/*
-
 common/transformations/__init__.py
 common/transformations/camera.py
 common/transformations/model.py
@@ -250,7 +247,6 @@ selfdrive/controls/lib/lateral_planner.py
 selfdrive/controls/lib/longcontrol.py
 selfdrive/controls/lib/longitudinal_planner.py
 selfdrive/controls/lib/pid.py
-selfdrive/controls/lib/radar_helpers.py
 selfdrive/controls/lib/vehicle_model.py
 
 selfdrive/controls/lib/cluster/*
@@ -301,6 +297,8 @@ selfdrive/locationd/models/live_kf.h
 selfdrive/locationd/models/live_kf.cc
 
 selfdrive/locationd/calibrationd.py
+selfdrive/locationd/torqued.py
+selfdrive/locationd/helpers.py
 
 selfdrive/logcatd/SConscript
 selfdrive/logcatd/logcatd_android.cc

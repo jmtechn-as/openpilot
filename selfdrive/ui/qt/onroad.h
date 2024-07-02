@@ -37,6 +37,9 @@ class OnroadHud : public QWidget {
   Q_PROPERTY(bool compass MEMBER compass);
   Q_PROPERTY(float bearingDeg MEMBER bearingDeg);
   Q_PROPERTY(float bearingAccuracyDeg MEMBER bearingAccuracyDeg);
+  Q_PROPERTY(bool showVTC MEMBER showVTC);
+  Q_PROPERTY(QString vtcSpeed MEMBER vtcSpeed);
+  Q_PROPERTY(QColor vtcColor MEMBER vtcColor);
 
 public:
   explicit OnroadHud(QWidget *parent);
@@ -48,6 +51,9 @@ private:
   //void drawTextWithColor(QPainter &p, int x, int y, const QString &text, QColor& color);
   void drawCompass(QPainter &p, int x, int y, QPixmap &img, QBrush bg, float opacity, float bearing_deg = 0);
   void paintEvent(QPaintEvent *event) override;
+  void drawCenteredText(QPainter &p, int x, int y, const QString &text, QColor color);
+  void drawVisionTurnControllerUI(QPainter &p, int x, int y, int size, const QColor &color, const QString &speed,
+                                  int alpha);
   
   QPixmap engage_img;
   QPixmap compass_inner_img;
@@ -60,6 +66,9 @@ private:
   bool compass;
   float bearingDeg = 0;
   float bearingAccuracyDeg;
+  bool showVTC = false;
+  QString vtcSpeed;
+  QColor vtcColor;
 
 protected:
   inline QColor blackColor(int alpha = 200) { return QColor(0, 0, 0, alpha); }
@@ -104,6 +113,7 @@ protected:
   void drawLead(QPainter &painter, const cereal::RadarState::LeadData::Reader &lead_data, const QPointF &vd, int num);
   // Ichiro Stuff
   void drawLockon(QPainter &painter, const cereal::ModelDataV2::LeadDataV3::Reader &lead_data, const QPointF &vd , int num);
+  void drawIcon(QPainter &p, int x, int y, QPixmap &img, QBrush bg, float opacity);
   inline QColor redColor(int alpha = 200) { return QColor(201, 34, 49, alpha); }
   inline QColor blackColor(int alpha = 200) { return QColor(0, 0, 0, alpha); }
   inline QColor greenColor(int alpha = 200) { return QColor(49, 201, 34, alpha); }

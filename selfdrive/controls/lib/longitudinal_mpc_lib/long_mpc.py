@@ -6,7 +6,8 @@ from common.realtime import sec_since_boot
 from common.numpy_fast import clip, interp
 from selfdrive.swaglog import cloudlog
 from selfdrive.modeld.constants import index_function
-from selfdrive.controls.lib.radar_helpers import _LEAD_ACCEL_TAU
+from selfdrive.controls.radard import _LEAD_ACCEL_TAU
+from selfdrive.controls.ntune import ntune_scc_get
 from common.conversions import Conversions as CV
 from common.params import Params
 from common.realtime import DT_MDL
@@ -38,10 +39,10 @@ X_EGO_COST = 0.
 V_EGO_COST = 0.
 A_EGO_COST = 0.
 J_EGO_COST = 5.0
-A_CHANGE_COST = 150.
+A_CHANGE_COST = 200.
 DANGER_ZONE_COST = 100.
 CRASH_DISTANCE = .5
-LEAD_DANGER_FACTOR = 0.75
+LEAD_DANGER_FACTOR = 0.8
 LIMIT_COST = 1e6
 ACADOS_SOLVER_TYPE = 'SQP_RTI'
 
@@ -60,9 +61,7 @@ T_FOLLOW = 1.45
 COMFORT_BRAKE = 2.5
 STOP_DISTANCE = 6.0
 
-def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW, stop_distance=STOP_DISTANCE, krkeegan=False):
-  if not krkeegan:
-    return (v_lead**2) / (2 * COMFORT_BRAKE)
+def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW, stop_distance=STOP_DISTANCE):
   # KRKeegan this offset rapidly decreases the following distance when the lead pulls
   # away, resulting in an early demand for acceleration.
   v_diff_offset = 0
@@ -72,12 +71,12 @@ def get_stopped_equivalence_factor(v_lead, v_ego, t_follow=T_FOLLOW, stop_distan
     v_diff_offset = np.maximum(v_diff_offset * ((10 - v_ego)/10), 0)
   distance = (v_lead**2) / (2 * COMFORT_BRAKE) + v_diff_offset
   return distance
-
+  
 def get_safe_obstacle_distance(v_ego, t_follow=T_FOLLOW, comfort_brake=COMFORT_BRAKE, stop_distance=STOP_DISTANCE):
   return (v_ego**2) / (2 * comfort_brake) +  t_follow * v_ego + stop_distance
 
-def desired_follow_distance(v_ego, v_lead):
-  return get_safe_obstacle_distance(v_ego) - get_stopped_equivalence_factor(v_lead, v_ego)
+def desired_follow_distance(v_ego, v_lead, t_follow=T_FOLLOW):
+  return get_safe_obstacle_distance(v_ego, t_follow) - get_stopped_equivalence_factor(v_lead, v_ego, t_follow)
 
 
 def gen_long_model():
@@ -214,24 +213,18 @@ def gen_long_ocp():
 
 
 class LongitudinalMpc:
-  def __init__(self, e2e=False):
+  def __init__(self, e2e=False, dt=DT_MDL):
+    self.dt = dt
     self.e2e = e2e
-    self.stopDistance = STOP_DISTANCE
     self.JEgoCost = 5.
-    self.AChangeCost = 200.
     self.DangerZoneCost = 100.
     self.leadDangerFactor = LEAD_DANGER_FACTOR
-    self.applyLongDynamicCost = False
     self.XEgoObstacleCost = 3.
-    self.applyDynamicTFollow = 1.0
-    self.applyDynamicTFollowApart = 1.0
-    self.applyDynamicTFollowDecel = 1.0
     self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
     self.reset()
     self.lo_timer = 0
     self.v_cruise = 0.
     self.t_follow = T_FOLLOW
-    self.comfort_brake = COMFORT_BRAKE
     
     self.source = SOURCES[2]
 
@@ -252,7 +245,6 @@ class LongitudinalMpc:
     self.u_sol = np.zeros((N,1))
     self.params = np.zeros((N+1, PARAM_DIM))
     self.t_follow = T_FOLLOW
-    self.comfort_brake = COMFORT_BRAKE
     
     for i in range(N+1):
       self.solver.set(i, 'x', np.zeros(X_DIM))
@@ -280,26 +272,26 @@ class LongitudinalMpc:
   def get_cost_multipliers(self, v_lead0, v_lead1):
     v_ego = self.x0[1]
     v_ego_bps = [0, 10]
-    TFs = [1.0, 1.25, T_FOLLOW, 1.8]
+    TFs = [1.0, 1.25, T_FOLLOW]
     # KRKeegan adjustments to costs for different TFs
     # these were calculated using the test_longitudial.py deceleration tests
-    a_change_tf = interp(self.t_follow, TFs, [.1, .8, 1., 1.1])
-    j_ego_tf = interp(self.t_follow, TFs, [.6, .8, 1., 1.1])
-    d_zone_tf = interp(self.t_follow, TFs, [1.6, 1.3, 1., 1.])
+    a_change_tf = interp(self.t_follow, TFs, [.1, .8, 1.])
+    j_ego_tf = interp(self.t_follow, TFs, [.6, .8, 1.])
+    d_zone_tf = interp(self.t_follow, TFs, [1.6, 1.3, 1.])
     # KRKeegan adjustments to improve sluggish acceleration
     # do not apply to deceleration
     j_ego_v_ego = 1
     a_change_v_ego = 1
     if (v_lead0 - v_ego >= 0) and (v_lead1 - v_ego >= 0):
-      j_ego_v_ego = interp(v_ego, v_ego_bps, [.015, 0.25])
-      a_change_v_ego = interp(v_ego, v_ego_bps, [.015, 0.25])
+      j_ego_v_ego = interp(v_ego, v_ego_bps, [.05, 1.])
+      a_change_v_ego = interp(v_ego, v_ego_bps, [.05, 1.])
     # Select the appropriate min/max of the options
     j_ego = min(j_ego_tf, j_ego_v_ego)
     a_change = min(a_change_tf, a_change_v_ego)
     return (a_change, j_ego, d_zone_tf)
-  
+
   def set_weights_for_lead_policy(self, prev_accel_constraint=True, v_lead0=0, v_lead1=0):
-    a_change_cost = self.AChangeCost if prev_accel_constraint else 0
+    a_change_cost = A_CHANGE_COST if prev_accel_constraint else 0
     cost_mulitpliers = self.get_cost_multipliers(v_lead0, v_lead1)
     W = np.asfortranarray(np.diag([self.XEgoObstacleCost, X_EGO_COST, V_EGO_COST,
                                    A_EGO_COST, a_change_cost * cost_mulitpliers[0],
@@ -349,7 +341,6 @@ class LongitudinalMpc:
   def process_lead(self, lead):
     v_ego = self.x0[1]
     if lead is not None and lead.status:
-      #x_lead = lead.dRel if lead.radar else max(lead.dRel-DIFF_RADAR_VISION, 0.)
       x_lead = lead.dRel
       v_lead = lead.vLead
       a_lead = lead.aLeadK
@@ -374,59 +365,21 @@ class LongitudinalMpc:
     self.cruise_min_a = min_a
     self.cruise_max_a = max_a
 
-  def update_TF(self, carstate, radarstate, v_ego, a_ego):
-    cruise_gap = int(clip(carstate.cruiseGap, 1., 4.))
-    if cruise_gap == 1:
-      self.t_follow = 1.0
-    elif cruise_gap == 2:
-      x_vel =  [0,    11,   13,   15,   25,   40]
-      y_dist = [1.5,  1.5,  1.51,  1.5,  1.5,  1.45]
-      self.t_follow = np.interp(carstate.vEgo, x_vel, y_dist)
-    elif cruise_gap == 3:
-      x_vel = [0,    11,   13,   15,   25,   40]
-      y_dist = [1.75, 1.75, 1.77, 1.75, 1.8,  1.8]
-      self.t_follow = np.interp(carstate.vEgo, x_vel, y_dist)
-    elif cruise_gap == 4:
-      x_vel = [0,    11,   13,   15,   25,   40]
-      y_dist = [0.9, 1.0, 1.1, 1.12, 1.22, 1.22]
-      self.t_follow = np.interp(carstate.vEgo, x_vel, y_dist)
-      
-    if radarstate.leadOne.status:
-      self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-100., 0, 100.], [self.applyDynamicTFollow, 1.0, self.applyDynamicTFollowApart])
-      self.t_follow *= interp(radarstate.leadOne.aLeadK, [-4, 0], [self.applyDynamicTFollowDecel, 1.0])
-      self.t_follow *= interp(a_ego, [-4, 0], [self.applyDynamicTFollowDecel, 1.0])
-
   def update(self, carstate, radarstate, v_cruise, prev_accel_constraint):
-    v_ego = self.x0[1]
-    a_ego = carstate.aEgo
     
-    self.lo_timer += 1
-    if self.lo_timer > 200:
-      self.lo_timer = 0
-      self.XEgoObstacleCost = float(int(Params().get("XEgoObstacleCost", encoding="utf8")))
-      self.JEgoCost = float(int(Params().get("JEgoCost", encoding="utf8")))
-    elif self.lo_timer == 20:
-      self.AChangeCost = float(int(Params().get("AChangeCost", encoding="utf8")))
-      self.DangerZoneCost = float(int(Params().get("DangerZoneCost", encoding="utf8")))
-    elif self.lo_timer == 40:
-      self.leadDangerFactor = float(int(Params().get("LeadDangerFactor", encoding="utf8"))) * 0.01
-      self.stopDistance = float(int(Params().get("StopDistance", encoding="utf8"))) / 100.
-    elif self.lo_timer == 60:
-      self.applyLongDynamicCost = Params().get_bool("ApplyLongDynamicCost") 
-      self.applyDynamicTFollow = float(int(Params().get("ApplyDynamicTFollow", encoding="utf8"))) / 100.
-    elif self.lo_timer == 80:  
-      self.applyDynamicTFollowApart = float(int(Params().get("ApplyDynamicTFollowApart", encoding="utf8"))) / 100.
-      self.applyDynamicTFollowDecel = float(int(Params().get("ApplyDynamicTFollowDecel", encoding="utf8"))) / 100.
+    self.update_params()
+    v_ego = self.x0[1]
+    a_ego = self.x0[2]
+    a_ego = carstate.aEgo
       
     self.status = radarstate.leadOne.status or radarstate.leadTwo.status
 
     lead_xv_0 = self.process_lead(radarstate.leadOne)
     lead_xv_1 = self.process_lead(radarstate.leadTwo)
-    
-    self.update_TF(carstate, radarstate, v_ego, a_ego)
-    self.comfort_brake = COMFORT_BRAKE
 
-    applyStopDistance = self.stopDistance
+    self.update_TF(carstate, radarstate, v_ego, a_ego)
+    comfort_brake = ntune_scc_get('comfortBrake')
+    stop_distance = ntune_scc_get('stopDistance')
     
     self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
 
@@ -437,8 +390,8 @@ class LongitudinalMpc:
     # To estimate a safe distance from a moving lead, we calculate how much stopping
     # distance that lead needs as a minimum. We can add that to the current distance
     # and then treat that as a stopped car/obstacle at this new distance.
-    lead_0_obstacle = lead_xv_0[:,0] + get_stopped_equivalence_factor(lead_xv_0[:,1], self.x_sol[:,1], self.t_follow, self.stopDistance, krkeegan=self.applyLongDynamicCost)
-    lead_1_obstacle = lead_xv_1[:,0] + get_stopped_equivalence_factor(lead_xv_1[:,1], self.x_sol[:,1], self.t_follow, self.stopDistance, krkeegan=self.applyLongDynamicCost)
+    lead_0_obstacle = lead_xv_0[:,0] + get_stopped_equivalence_factor(lead_xv_0[:,1], self.x_sol[:,1], self.t_follow, stop_distance)
+    lead_1_obstacle = lead_xv_1[:,0] + get_stopped_equivalence_factor(lead_xv_1[:,1], self.x_sol[:,1], self.t_follow, stop_distance)
 
 
     # Fake an obstacle for cruise, this ensures smooth acceleration to set speed
@@ -448,15 +401,15 @@ class LongitudinalMpc:
     v_cruise_clipped = np.clip(v_cruise * np.ones(N+1),
                                v_lower,
                                v_upper)
-    cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow, self.comfort_brake, applyStopDistance)
+    cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow, comfort_brake, stop_distance)
 
     x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle])
     self.source = SOURCES[np.argmin(x_obstacles[0])]
     self.params[:,2] = np.min(x_obstacles, axis=1)
     self.params[:,3] = np.copy(self.prev_a)
     self.params[:,4] = self.t_follow
-    self.params[:,5] = self.comfort_brake
-    self.params[:,6] = applyStopDistance
+    self.params[:,5] = comfort_brake
+    self.params[:,6] = stop_distance
     self.params[:,7] = self.leadDangerFactor
     
     self.run()
@@ -511,7 +464,7 @@ class LongitudinalMpc:
     self.a_solution = self.x_sol[:,2]
     self.j_solution = self.u_sol[:,0]
 
-    self.prev_a = np.interp(T_IDXS + 0.05, T_IDXS, self.a_solution)
+    self.prev_a = np.interp(T_IDXS + self.dt, T_IDXS, self.a_solution)
 
     t = sec_since_boot()
     if self.solution_status != 0:
@@ -522,6 +475,34 @@ class LongitudinalMpc:
       # reset = 1
     # print(f"long_mpc timings: total internal {self.solve_time:.2e}, external: {(sec_since_boot() - t0):.2e} qp {self.time_qp_solution:.2e}, lin {self.time_linearization:.2e} qp_iter {qp_iter}, reset {reset}")
 
+  def update_params(self):
+    self.lo_timer += 1
+    if self.lo_timer > 200:
+      self.lo_timer = 0
+    elif self.lo_timer == 20:
+      pass
+    elif self.lo_timer == 40:
+      self.XEgoObstacleCost = float(int(Params().get("XEgoObstacleCost", encoding="utf8")))
+      self.JEgoCost = float(int(Params().get("JEgoCost", encoding="utf8")))
+    elif self.lo_timer == 60:
+      self.DangerZoneCost = float(int(Params().get("DangerZoneCost", encoding="utf8")))
+    elif self.lo_timer == 80:
+      self.leadDangerFactor = float(int(Params().get("LeadDangerFactor", encoding="utf8"))) * 0.01
+
+  def update_TF(self, carstate, radarstate, v_ego, a_ego):
+    cruise_gap = int(clip(carstate.cruiseGap, 1., 4.))
+    if cruise_gap == 1:
+      self.t_follow = 1.0
+    elif cruise_gap == 2:
+      self.t_follow = 1.25
+    elif cruise_gap == 3:
+      x_vel = [0,    11,   13,   15,   25,   40]
+      y_dist = [1.75, 1.8, 1.9, 2.0, 2.2,  2.3]
+      self.t_follow = np.interp(carstate.vEgo, x_vel, y_dist)
+    elif cruise_gap == 4:
+      x_vel = [0,    11,   13,   15,   25,   40]
+      y_dist = [1.0, 1.1, 1.2, 1.3, 1.4, 1.5]
+      self.t_follow = np.interp(carstate.vEgo, x_vel, y_dist)
 
 if __name__ == "__main__":
   ocp = gen_long_ocp()

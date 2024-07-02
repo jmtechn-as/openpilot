@@ -11,8 +11,8 @@ from selfdrive.car.hyundai.values import Buttons
 from common.params import Params
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, V_CRUISE_MIN, V_CRUISE_DELTA_KM, V_CRUISE_DELTA_MI, \
   CONTROL_N
+from selfdrive.controls.ntune import ntune_scc_get
 from selfdrive.controls.lib.lane_planner import TRAJECTORY_SIZE
-from selfdrive.ntune import ntune_scc_get
 from selfdrive.road_speed_limiter import road_speed_limiter_get_max_speed, road_speed_limiter_get_active, \
   get_road_speed_limiter
 
@@ -22,8 +22,8 @@ SYNC_MARGIN = 5.
 MIN_SET_SPEED_KPH = V_CRUISE_MIN
 MAX_SET_SPEED_KPH = V_CRUISE_MAX
 
-ALIVE_COUNT = [6, 8]
-WAIT_COUNT = [12, 13, 14, 15, 16]
+ALIVE_COUNT = [8, 10]
+WAIT_COUNT = [12, 14, 16, 18]
 AliveIndex = 0
 WaitIndex = 0
 

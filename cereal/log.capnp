@@ -478,7 +478,6 @@ struct PeripheralState {
 }
 
 struct RadarState @0x9a185389d6fdd05f {
-  canMonoTimes @10 :List(UInt64);
   mdMonoTime @6 :UInt64;
   carStateMonoTime @11 :UInt64;
   radarErrors @12 :List(Car.RadarData.Error);
@@ -513,6 +512,7 @@ struct RadarState @0x9a185389d6fdd05f {
   calStatusDEPRECATED @2 :Int8;
   calCycleDEPRECATED @8 :Int32;
   calPercDEPRECATED @9 :Int8;
+  canMonoTimesDEPRECATED @10 :List(UInt64);
 }
 
 struct LiveCalibrationData {
@@ -556,7 +556,6 @@ struct LiveTracks {
 
 struct ControlsState @0x97ff69c53601abf1 {
   startMonoTime @48 :UInt64;
-  canMonoTimes @21 :List(UInt64);
   longitudinalPlanMonoTime @28 :UInt64;
   lateralPlanMonoTime @50 :UInt64;
 
@@ -682,6 +681,9 @@ struct ControlsState @0x97ff69c53601abf1 {
     saturated @7 :Bool;
     actualLateralAccel @9 :Float32;
     desiredLateralAccel @10 :Float32;
+    latAccelFactor @11 :Float32;
+    latAccelOffset @12 :Float32;
+    friction @13 :Float32;
    }
 
   struct LateralLQRState {
@@ -738,6 +740,7 @@ struct ControlsState @0x97ff69c53601abf1 {
   jerkFactorDEPRECATED @12 :Float32;
   steerOverrideDEPRECATED @20 :Bool;
   steeringAngleDesiredDegDEPRECATED @29 :Float32;
+  canMonoTimesDEPRECATED @21 :List(UInt64);
 }
 
 struct ModelDataV2 {
@@ -1728,6 +1731,23 @@ struct LiveParametersData {
   stiffnessFactorStd @12 :Float32;
   steerRatioStd @13 :Float32;
   roll @14 :Float32;
+  filterState @15 :LiveLocationKalman.Measurement;
+}
+
+struct LiveTorqueParametersData {
+  liveValid @0 :Bool;
+  latAccelFactorRaw @1 :Float32;
+  latAccelOffsetRaw @2 :Float32;
+  frictionCoefficientRaw @3 :Float32;
+  latAccelFactorFiltered @4 :Float32;
+  latAccelOffsetFiltered @5 :Float32;
+  frictionCoefficientFiltered @6 :Float32;
+  totalBucketPoints @7 :Float32;
+  decay @8 :Float32;
+  maxResets @9 :Float32;
+  points @10 :List(List(Float32));
+  version @11 :Int32;
+  useParams @12 :Bool;
 }
 
 struct LiveMapDataDEPRECATED {
@@ -1889,6 +1909,7 @@ struct Event {
     gpsLocationExternal @48 :GpsLocationData;
     driverState @59 :DriverState;
     liveParameters @61 :LiveParametersData;
+    liveTorqueParameters @91 :LiveTorqueParametersData;
     cameraOdometry @63 :CameraOdometry;
     thumbnail @66: Thumbnail;
     carEvents @68: List(Car.CarEvent);

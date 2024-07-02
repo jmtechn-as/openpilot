@@ -5,7 +5,7 @@ from common.conversions import Conversions as CV
 from common.numpy_fast import clip, interp
 from common.realtime import DT_MDL
 from selfdrive.modeld.constants import T_IDXS
-from selfdrive.ntune import ntune_common_get
+from selfdrive.controls.ntune import ntune_common_get
 
 # WARNING: this value was determined based on the model's training distribution,
 #          model predictions above this speed can be unpredictable
@@ -35,11 +35,10 @@ CRUISE_INTERVAL_SIGN = {
   car.CarState.ButtonEvent.Type.decelCruise: -1,
 }
 
-
 class MPC_COST_LAT:
   PATH = 1.0
   HEADING = 1.0
-  STEER_RATE = 0.9
+  STEER_RATE = 1.0
 
 
 def apply_deadzone(error, deadzone):
@@ -50,7 +49,6 @@ def apply_deadzone(error, deadzone):
   else:
     error = 0.
   return error
-
 
 def rate_limit(new_value, last_value, dw_step, up_step):
   return clip(new_value, last_value + dw_step, last_value + up_step)
@@ -89,6 +87,11 @@ def update_v_cruise(v_cruise_kph, buttonEvents, button_timers, enabled, metric):
       v_cruise_kph += v_cruise_delta * CRUISE_INTERVAL_SIGN[button_type]
     v_cruise_kph = clip(round(v_cruise_kph, 1), V_CRUISE_MIN, V_CRUISE_MAX)
 
+    v_cruise_offset = (set_speed_offset * CRUISE_INTERVAL_SIGN[button_type]) if long_press else 0
+    if v_cruise_offset < 0:
+      v_cruise_offset = set_speed_offset - v_cruise_delta
+    v_cruise_kph += v_cruise_offset
+
   return v_cruise_kph
 
 
@@ -100,7 +103,6 @@ def initialize_v_cruise(v_ego, buttonEvents, v_cruise_last):
 
   return int(round(clip(v_ego * CV.MS_TO_KPH, V_CRUISE_ENABLE_MIN, V_CRUISE_MAX)))
 
-
 def get_lag_adjusted_curvature(CP, v_ego, psis, curvatures, curvature_rates, distances, average_desired_curvature):
   if len(psis) != CONTROL_N or len(distances) != CONTROL_N:
     psis = [0.0]*CONTROL_N
@@ -110,7 +112,7 @@ def get_lag_adjusted_curvature(CP, v_ego, psis, curvatures, curvature_rates, dis
   v_ego = max(v_ego, 0.1)
 
   # TODO this needs more thought, use .2s extra for now to estimate other delays
-  delay = max(0.01, CP.steerActuatorDelay)
+  delay = ntune_common_get("steerActuatorDelay") + .2
   # MPC can plan to turn the wheel and turn back before t_delay. This means
   # in high delay cases some corrections never even get commanded. So just use
   # psi to calculate a simple linearization of desired curvature
@@ -128,7 +130,7 @@ def get_lag_adjusted_curvature(CP, v_ego, psis, curvatures, curvature_rates, dis
   safe_desired_curvature_rate = clip(desired_curvature_rate,
                                           -max_curvature_rate,
                                           max_curvature_rate)
-  safe_desired_curvature = clip(desired_curvature,
+  safe_desired_curvature = clip(desired_curvature * 1.05,
                                      current_curvature_desired - max_curvature_rate * DT_MDL,
                                      current_curvature_desired + max_curvature_rate * DT_MDL)
 

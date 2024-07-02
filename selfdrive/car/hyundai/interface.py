@@ -9,9 +9,9 @@ from selfdrive.car.hyundai.values import CAR, DBC, Buttons, CarControllerParams,
 from selfdrive.car.hyundai.radar_interface import RADAR_START_ADDR
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
 from selfdrive.car.interfaces import CarInterfaceBase
-from selfdrive.controls.lib.latcontrol_torque import set_torque_tune
 from common.params import Params
-from decimal import Decimal
+from selfdrive.controls.ntune import ntune_scc_get
+from selfdrive.controls.ntune import ntune_common_get
 from selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 
 GearShifter = car.CarState.GearShifter
@@ -24,6 +24,16 @@ class CarInterface(CarInterfaceBase):
     self.cp2 = self.CS.get_can2_parser(CP)
     self.mad_mode_enabled = Params().get_bool('MadModeEnabled')
 
+  @staticmethod
+  def get_pid_accel_limits(CP, current_speed, cruise_speed):
+
+    v_current_kph = current_speed * CV.MS_TO_KPH
+
+    gas_max_bp = [0., 10., 20., 50., 70., 110.]
+    gas_max_v = [ntune_common_get('accel1'), ntune_common_get('accel2'), ntune_common_get('accel3'), ntune_common_get('accel4'), ntune_common_get('accel5'), ntune_common_get('accel6')]
+
+    return CarControllerParams.ACCEL_MIN, interp(v_current_kph, gas_max_bp, gas_max_v)
+	  
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=[], disable_radar=False):  # pylint: disable=dangerous-default-value
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
@@ -41,7 +51,6 @@ class CarInterface(CarInterfaceBase):
 	
     ret.disableLateralLiveTuning = False
 
-    torque_params = CarInterfaceBase.get_torque_params(candidate)
     # -------------PID
     if Params().get("LateralControlSelect", encoding='utf8') == "0":
       if candidate in [CAR.GENESIS, CAR.GENESIS_G80]:
@@ -80,16 +89,15 @@ class CarInterface(CarInterfaceBase):
     
     # --------------Torque
     elif Params().get("LateralControlSelect", encoding='utf8') == "3":
-      if candidate in [CAR.GENESIS, CAR.GENESIS_G80]:
-        set_torque_tune(ret.lateralTuning, torque_params['LAT_ACCEL_FACTOR'], torque_params['FRICTION'])
+      if candidate in [CAR.GENESIS, CAR.GENESIS_G80, CAR.GENESIS_G90]:
+        CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
 
 
-    ret.steerActuatorDelay = 0.1
-    ret.steerLimitTimer = 0.8
+    ret.steerActuatorDelay = 0.3
+    ret.steerLimitTimer = 0.4
     ret.steerRatio = 15.3
 
     params = Params()
-    ret.steerActuatorDelay = float(Decimal(params.get("SteerActuatorDelayAdj", encoding="utf8")) * Decimal('0.01'))
 	  
     # genesis
     if candidate == CAR.GENESIS:
@@ -112,16 +120,6 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 16.0
       ret.steerActuatorDelay = 0.075
       ret.steerRateCost = 0.4
-
-      if ret.lateralTuning.which() == 'torque':
-        ret.lateralTuning.torque.useSteeringAngle = True
-        max_lat_accel = 2.5
-        ret.lateralTuning.torque.kp = 1.0 / max_lat_accel
-        ret.lateralTuning.torque.kf = 1.0 / max_lat_accel
-        ret.lateralTuning.torque.ki = 0.1 / max_lat_accel
-        ret.lateralTuning.torque.friction = 0.01
-        ret.lateralTuning.torque.kd = 0.0
-
     elif candidate == CAR.GENESIS_EQ900_L:
       ret.mass = 2290
       ret.wheelbase = 3.45
@@ -289,8 +287,6 @@ class CarInterface(CarInterfaceBase):
         ret.lateralTuning.torque.kd = 0.0
 
 
-    ret.radarTimeStep = 0.05
-
     if ret.centerToFront == 0:
       ret.centerToFront = ret.wheelbase * 0.4
 
@@ -310,22 +306,20 @@ class CarInterface(CarInterfaceBase):
 
     # longitudinal
     #ret.longitudinalTuning.kpV = [0.5]
-    #ret.longitudinalTuning.kiV = [0.0]
-    ret.longitudinalTuning.kpBP = [2.0, 7.0]
-    ret.longitudinalTuning.kpV = [0.4, 0.6]
+    ret.longitudinalTuning.kiV = [0.0]
 
-    ret.longitudinalTuning.kiBP = [2.0, 7.0]
-    ret.longitudinalTuning.kiV = [0.0, 0.15]
-
-    ret.stoppingControl = True
-    ret.startingState = False
-    ret.vEgoStarting = 0.3
-    ret.vEgoStopping = 0.3
-    ret.startAccel = 1.0
-    ret.stoppingDecelRate = 0.2
+    ret.longitudinalTuning.kpBP = [0., 10.*CV.KPH_TO_MS]
+    ret.longitudinalTuning.kpV = [1.0, 0.1]
+    ret.longitudinalTuning.kf = ntune_scc_get('longitudinalTuningkf')
 	  
-    ret.longitudinalActuatorDelayLowerBound = 0.2
-    ret.longitudinalActuatorDelayUpperBound = 0.6
+    ret.stoppingControl = True
+    ret.startingState = False#True
+    ret.vEgoStarting = ntune_scc_get('vEgoStarting')
+    ret.vEgoStopping = ntune_scc_get('vEgoStopping')
+    ret.stoppingDecelRate = ntune_scc_get('stoppingDecelRate')
+    ret.startAccel = ntune_scc_get('startAccel')
+    ret.stopAccel = ntune_scc_get('stopAccel')  
+    ret.longitudinalActuatorDelay = 0.3
 	  
     ret.enableBsm = 0x58b in fingerprint[0]
     ret.enableAutoHold = 1151 in fingerprint[0]
@@ -345,7 +339,9 @@ class CarInterface(CarInterfaceBase):
 
     ret.radarOffCan = ret.sccBus == -1
     ret.pcmCruise = not ret.radarOffCan
-	
+
+    ret.radarTimeStep = (1.0 / 50)
+	  
     # Detect smartMDPS: the smartMDPS allows openpilot to continue lateral actuation past the lateral low speed lockout by intercepting CF_Clu_Vanz from the MDPS
     smartMdps = 0x2AA in fingerprint[0]
     # If the smartMDPS is detected, openpilot can send lateral actuation when lower than minSteerSpeed without faulting

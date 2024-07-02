@@ -17,6 +17,7 @@ from selfdrive.car.car_helpers import get_car, get_startup_event, get_one_can
 from selfdrive.controls.lib.lane_planner import CAMERA_OFFSET
 from selfdrive.controls.lib.drive_helpers import update_v_cruise, initialize_v_cruise
 from selfdrive.controls.lib.drive_helpers import get_lag_adjusted_curvature
+from selfdrive.controls.lib.latcontrol import LatControl, MIN_LATERAL_CONTROL_SPEED
 from selfdrive.controls.lib.longcontrol import LongControl
 from selfdrive.controls.lib.latcontrol_pid import LatControlPID
 from selfdrive.controls.lib.latcontrol_indi import LatControlINDI
@@ -29,11 +30,11 @@ from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.hardware import HARDWARE, TICI, EON
 from selfdrive.manager.process_config import managed_processes
 from selfdrive.car.hyundai.scc_smoother import SccSmoother
-from selfdrive.ntune import ntune_common_get, ntune_common_enabled, ntune_scc_get
+from selfdrive.controls.ntune import ntune_common_get, ntune_common_enabled, ntune_scc_get
 from decimal import Decimal
 
-SR_SCALE_BP = [0., 05., 10., 15., 20., 25., 30., 35., 40., 45., 50., 55., 60., 65., 70., 75., 80., 85., 90., 95., 100., 105., 110., 115., 120., 125., 130.]
-SR_SCALE_V = [15.3, 15.3, 15.3, 15.3, 15.4, 15.4, 15.5, 15.5, 15.5, 15.5, 15.5, 15.6, 15.6, 15.6, 15.5, 15.5, 15.5, 15.5, 15.2, 15.2, 15.0, 14.8, 14.8, 14.8, 14.6, 14.5, 14.6]
+SR_SCALE_BP = [0., 40., 60., 80., 100.]
+SR_SCALE_V = [16.0, 15.9, 15.8, 15.5, 15.3]
 
 SOFT_DISABLE_TIME = 3  # seconds
 LDW_MIN_SPEED = 31 * CV.MPH_TO_MS
@@ -104,7 +105,7 @@ class Controls:
       ignore = ['driverCameraState', 'managerState'] if SIMULATION else None
       self.sm = messaging.SubMaster(['deviceState', 'pandaStates', 'peripheralState', 'modelV2', 'liveCalibration',
                                      'driverMonitoringState', 'longitudinalPlan', 'lateralPlan', 'liveLocationKalman',
-                                     'managerState', 'liveParameters', 'radarState'] + self.camera_packets + joystick_packet,
+                                     'managerState', 'liveParameters', 'radarState', 'liveTorqueParameters'] + self.camera_packets + joystick_packet,
                                     ignore_alive=ignore, ignore_avg_freq=['radarState', 'longitudinalPlan'])
 
     # set alternative experiences from parameters
@@ -119,6 +120,7 @@ class Controls:
     openpilot_enabled_toggle = params.get_bool("OpenpilotEnabledToggle")
     self.average_desired_curvature = self.CP.pfeiferjDesiredCurvatures
     passive = params.get_bool("Passive") or not openpilot_enabled_toggle
+    self.set_speed_offset = params.get_bool("SetSpeedOffset") * (1 if self.is_metric else CV.MPH_TO_KPH)
 
     # detect sound card presence and ensure successful init
     sounds_available = HARDWARE.get_sound_card_online()
@@ -132,10 +134,16 @@ class Controls:
       safety_config.safetyModel = car.CarParams.SafetyModel.noOutput
       self.CP.safetyConfigs = [safety_config]
 
+    # Write previous route's CarParams
+    prev_cp = params.get("CarParamsPersistent")
+    if prev_cp is not None:
+      params.put("CarParamsPrevRoute", prev_cp)
+      
     # Write CarParams for radard
     cp_bytes = self.CP.to_bytes()
     params.put("CarParams", cp_bytes)
     put_nonblocking("CarParamsCache", cp_bytes)
+    put_nonblocking("CarParamsPersistent", cp_bytes)
 
     self.CC = car.CarControl.new_message()
     self.CS_prev = car.CarState.new_message()
@@ -361,7 +369,7 @@ class Controls:
       self.events.add(EventName.vehicleModelInvalid)
     if not self.sm['lateralPlan'].mpcSolutionValid and not (EventName.turningIndicatorOn in self.events.names):
       self.events.add(EventName.plannerError)
-    if not self.sm['liveLocationKalman'].sensorsOK and not NOSENSOR:
+    if not (self.sm['liveParameters'].sensorValid or self.sm['liveLocationKalman'].sensorsOK) and not NOSENSOR:
       if self.sm.frame > 5 / DT_CTRL:  # Give locationd some time to receive all the inputs
         self.events.add(EventName.sensorDataInvalid)
     if not self.sm['liveLocationKalman'].posenetOK:
@@ -478,13 +486,13 @@ class Controls:
     self.CP.pcmCruise = self.CI.CP.pcmCruise
 
     # if stock cruise is completely disabled, then we can use our own set speed logic
-    #if not self.CP.pcmCruise:
-    #  self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.button_timers, self.enabled, self.is_metric)
-    #else:
-    #  if CS.cruiseState.available:
-    #    self.v_cruise_kph = CS.cruiseState.speed * CV.MS_TO_KPH
-    #  else:
-    #    self.v_cruise_kph = 0
+    if not self.CP.pcmCruise:
+      self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.button_timers, self.enabled, self.is_metric)
+    else:
+      if CS.cruiseState.available:
+        self.v_cruise_kph = CS.cruiseState.speed * CV.MS_TO_KPH
+      else:
+        self.v_cruise_kph = 0
 
     SccSmoother.update_cruise_buttons(self, CS, self.CP.openpilotLongitudinalControl)
     
@@ -601,6 +609,12 @@ class Controls:
       
     self.VM.update_params(x, sr)
 
+    # Update Torque Params
+    if self.CP.lateralTuning.which() == 'torque':
+      torque_params = self.sm['liveTorqueParameters']
+      if self.sm.all_checks(['liveTorqueParameters']) and torque_params.useParams:
+        self.LaC.update_live_torque_params(torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
+    
     lat_plan = self.sm['lateralPlan']
     long_plan = self.sm['longitudinalPlan']
 
@@ -608,8 +622,9 @@ class Controls:
     CC.enabled = self.enabled
     
     # Check which actuators can be enabled
+    standstill = CS.vEgo <= max(self.CP.minSteerSpeed, MIN_LATERAL_CONTROL_SPEED) or CS.standstill
     CC.latActive = self.active and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
-                   CS.vEgo > self.CP.minSteerSpeed and not CS.standstill \
+                   (not standstill or self.joystick_mode) \
                    and abs(CS.steeringAngleDeg) < self.CP.maxSteeringAngleDeg
     CC.longActive = self.active and not self.events.any(ET.OVERRIDE) and self.CP.openpilotLongitudinalControl
 
@@ -630,7 +645,6 @@ class Controls:
       self.LoC.reset(v_pid=CS.vEgo)
 
     if not self.joystick_mode:
-      # accel PID loop
       pid_accel_limits = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_kph * CV.KPH_TO_MS)
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL
       actuators.accel = self.LoC.update(CC.longActive and CS.cruiseState.enabledAcc, CS, long_plan, pid_accel_limits, t_since_plan)
@@ -724,8 +738,6 @@ class Controls:
 
     right_lane_visible = self.sm['lateralPlan'].rProb > 0.5
     left_lane_visible = self.sm['lateralPlan'].lProb > 0.5
-
-    totalCameraOffset = self.sm['lateralPlan'].totalCameraOffset
     
     if self.sm.frame % 100 == 0:
       self.right_lane_visible = right_lane_visible
@@ -797,7 +809,6 @@ class Controls:
       controlsState.alertType = current_alert.alert_type
       controlsState.alertSound = current_alert.audible_alert
 
-    controlsState.canMonoTimes = list(CS.canMonoTimes)
     controlsState.longitudinalPlanMonoTime = self.sm.logMonoTime['longitudinalPlan']
     controlsState.lateralPlanMonoTime = self.sm.logMonoTime['lateralPlan']
     controlsState.enabled = self.enabled
@@ -829,13 +840,11 @@ class Controls:
 
     controlsState.steerRatio = self.VM.sR
     controlsState.steerRateCost = ntune_common_get('steerRateCost')
-    controlsState.steerActuatorDelay = float(Decimal(Params().get("SteerActuatorDelayAdj", encoding="utf8")) * Decimal('0.01'))
+    controlsState.steerActuatorDelay = ntune_common_get('steerActuatorDelay')
 
     controlsState.sccGasFactor = ntune_scc_get('sccGasFactor')
     controlsState.sccBrakeFactor = ntune_scc_get('sccBrakeFactor')
     controlsState.sccCurvatureFactor = ntune_scc_get('sccCurvatureFactor')
-    controlsState.totalCameraOffset = totalCameraOffset
-    
     controlsState.lateralControlSelect = int(self.lateral_control_select)
     
     if self.joystick_mode:
