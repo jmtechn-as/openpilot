@@ -177,19 +177,19 @@ class nTune():
     if self.checkValue("autoLaneChangeSpeed", 10.0, 60.0, 30.0):
       updated = True
 
-    if self.checkValue("accel1", 0.0, 2.0, 1.5):
+    if self.checkValue("accel1", 0.0, 2.0, 1.75):
       updated = True
 
-    if self.checkValue("accel2", 0.0, 2.0, 1.3):
+    if self.checkValue("accel2", 0.0, 2.0, 1.7):
       updated = True
 
-    if self.checkValue("accel3", 0.0, 2.0, 1.1):
+    if self.checkValue("accel3", 0.0, 2.0, 0.9):
       updated = True
 
-    if self.checkValue("accel4", 0.0, 2.0, 0.55):
+    if self.checkValue("accel4", 0.0, 2.0, 0.43):
       updated = True
 
-    if self.checkValue("accel5", 0.0, 2.0, 0.38):
+    if self.checkValue("accel5", 0.0, 2.0, 0.33):
       updated = True
 
     if self.checkValue("accel6", 0.0, 2.0, 0.15):
@@ -218,7 +218,7 @@ class nTune():
       updated = True
     if self.checkValue("latAccelFactor", 0.5, 4.5, 2.7):
       updated = True
-    if self.checkValue("friction", 0.0, 0.2, 0.08):
+    if self.checkValue("friction", 0.0, 0.2, 0.09):
       updated = True
     if self.checkValue("angle_deadzone_v2", 0.0, 2.0, 0.0):
       updated = True
@@ -234,13 +234,13 @@ class nTune():
     if self.checkValue("longitudinalActuatorDelay", 0.1, 1.0, 0.5):
       updated = True
       
-    if self.checkValue("aTargetFactor", 0.7, 1.5, 1.0):
+    if self.checkValue("aTargetFactor", 0.7, 1.5, 1.10):
       updated = True
 
     if self.checkValue("comfortBrake", 2.3, 3.2, 2.5):
       updated = True
 
-    if self.checkValue("stopDistance", 4., 7., 5.0):
+    if self.checkValue("stopDistance", 4., 7., 6.0):
       updated = True
 
     if self.checkValue("longDisableRadar", 0., 1., 0.):
@@ -261,10 +261,10 @@ class nTune():
     if self.checkValue("stoppingDecelRate", 0.0, 1.0, 0.3):
       updated = True
 
-    if self.checkValue("vEgoStopping", 0.0, 1.0, 0.3):
+    if self.checkValue("vEgoStopping", 0.0, 1.0, 0.2):
       updated = True
 
-    if self.checkValue("vEgoStarting", 0.0, 1.0, 0.3):
+    if self.checkValue("vEgoStarting", 0.0, 1.0, 0.2):
       updated = True
 
     if self.checkValue("stopAccel", 0.0, 5.0, 2.0):
