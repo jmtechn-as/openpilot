@@ -35,7 +35,7 @@ QList<QList<TuneItemInfo>> nTuneMainWidget::mainItems = {
     TuneItemInfo("scc_v3.json", "aTargetFactor", tr("값이 클수록 앞차 반응에 민감."),
                  1.10f, 0.7f, 1.5f, 0.05f, 2),
     TuneItemInfo("scc_v3.json", "longitudinalActuatorDelay", tr("Longitudinal Actuator Delay"),
-                 0.5f, 0.1f, 1.0f, 0.05f, 2, "sec"),
+                 0.3f, 0.1f, 1.0f, 0.05f, 2, "sec"),
     TuneItemInfo("scc_v3.json", "longitudinalTuningkf", tr("값이 클수록 응답성이 좋아짐 "),
                  1.0f, 0.0f, 2.0f, 0.05f, 2),
     TuneItemInfo("scc_v3.json", "stopAccel", tr(""),
