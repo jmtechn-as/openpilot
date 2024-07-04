@@ -13,7 +13,7 @@ QList<QString> nTuneMainWidget::mainTitles = {
 QList<QList<TuneItemInfo>> nTuneMainWidget::mainItems = {
 {
     TuneItemInfo("common.json", "accel1", "0~10km구간가속",
-                 1.75f, 0.0f, 2.0f, 0.05f, 2),
+                 1.65f, 0.0f, 2.0f, 0.05f, 2),
     TuneItemInfo("common.json", "accel2", "10~20km구간가속",
                  1.7f, 0.0f, 2.0f, 0.05f, 2),
     TuneItemInfo("common.json", "accel3", "20~50km구간가속",
