@@ -177,7 +177,7 @@ class nTune():
     if self.checkValue("autoLaneChangeSpeed", 10.0, 60.0, 30.0):
       updated = True
 
-    if self.checkValue("accel1", 0.0, 2.0, 1.75):
+    if self.checkValue("accel1", 0.0, 2.0, 1.65):
       updated = True
 
     if self.checkValue("accel2", 0.0, 2.0, 1.7):
