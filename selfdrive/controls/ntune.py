@@ -231,7 +231,7 @@ class nTune():
     if self.checkValue("longStartingFactor", 0.7, 1.5, 1.0):
       updated = True
 
-    if self.checkValue("longitudinalActuatorDelay", 0.1, 1.0, 0.5):
+    if self.checkValue("longitudinalActuatorDelay", 0.1, 1.0, 0.3):
       updated = True
       
     if self.checkValue("aTargetFactor", 0.7, 1.5, 1.10):
