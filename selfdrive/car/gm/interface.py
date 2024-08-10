@@ -74,7 +74,7 @@ class CarInterface(CarInterfaceBase):
     ret.carName = "gm"
     ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.gm)]
     ret.autoResumeSng = False
-    ret.enableBsm = 0x142 in fingerprint[CanBus.POWERTRAIN]
+    #ret.enableBsm = 0x142 in fingerprint[CanBus.POWERTRAIN]
 
     if candidate in EV_CAR:
       ret.transmissionType = TransmissionType.direct
@@ -83,9 +83,8 @@ class CarInterface(CarInterfaceBase):
 
     ret.longitudinalTuning.deadzoneBP = [0.]
     ret.longitudinalTuning.deadzoneV = [0.15]
-
-    ret.longitudinalTuning.kpBP = [5., 35.]
-    ret.longitudinalTuning.kiBP = [0.]
+    ret.longitudinalTuning.kpBP = [0., 0.]
+    ret.longitudinalTuning.kiBP = [0., 0.]
 
     if candidate in CAMERA_ACC_CAR:
       ret.experimentalLongitudinalAvailable = True
@@ -97,9 +96,9 @@ class CarInterface(CarInterfaceBase):
       ret.minSteerSpeed = 10 * CV.KPH_TO_MS
 
       # Tuning for experimental long
-      ret.longitudinalTuning.kpV = [2.0, 1.5]
-      ret.longitudinalTuning.kiV = [0.72]
-      ret.stoppingDecelRate = 2.0  # reach brake quickly after enabling
+      ret.longitudinalTuning.kpV = [0.2, 0.00]
+      ret.longitudinalTuning.kiV = [0.2, 0.00]
+      ret.stoppingDecelRate = 0.5  # reach brake quickly after enabling
       ret.vEgoStopping = 0.25
       ret.vEgoStarting = 0.25
 
@@ -118,8 +117,8 @@ class CarInterface(CarInterfaceBase):
       ret.minSteerSpeed = 7 * CV.MPH_TO_MS
 
       # Tuning
-      ret.longitudinalTuning.kpV = [2.4, 1.5]
-      ret.longitudinalTuning.kiV = [0.36]
+      ret.longitudinalTuning.kpV = [0.2, 0.00]
+      ret.longitudinalTuning.kiV = [0.2, 0.00]
 
     # These cars have been put into dashcam only due to both a lack of users and test coverage.
     # These cars likely still work fine. Once a user confirms each car works and a test route is
@@ -278,14 +277,14 @@ class CarInterface(CarInterfaceBase):
 
     # Enabling at a standstill with brake is allowed
     # TODO: verify 17 Volt can enable for the first time at a stop and allow for all GMs
-    below_min_enable_speed = ret.vEgo < self.CP.minEnableSpeed or self.CS.moving_backward
-    if below_min_enable_speed and not (ret.standstill and ret.brake >= 20 and
-                                       self.CP.networkLocation == NetworkLocation.fwdCamera):
-      events.add(EventName.belowEngageSpeed)
-    if ret.cruiseState.standstill:
-      events.add(EventName.resumeRequired)
-    if ret.vEgo < self.CP.minSteerSpeed:
-      events.add(EventName.belowSteerSpeed)
+    #below_min_enable_speed = ret.vEgo < self.CP.minEnableSpeed or self.CS.moving_backward
+    #if below_min_enable_speed and not (ret.standstill and ret.brake >= 20 and
+    #                                   self.CP.networkLocation == NetworkLocation.fwdCamera):
+    #  events.add(EventName.belowEngageSpeed)
+    #if ret.cruiseState.standstill:
+    #  events.add(EventName.resumeRequired)
+    #if ret.vEgo < self.CP.minSteerSpeed:
+    #  events.add(EventName.belowSteerSpeed)
 
     ret.events = events.to_msg()
 
