@@ -61,6 +61,7 @@ def manager_init() -> None:
     ("DisableOpFcw", "0"),
     ("ShowDebugUI", "0"),
     ("NewRadarInterface", "0"),
+    ("SshEnabled", "1"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
@@ -138,7 +139,6 @@ def manager_thread() -> None:
 
   if EON:
     Process(name="autoshutdownd", target=launcher, args=("selfdrive.autoshutdownd", "autoshutdownd")).start()
-    system("am startservice com.neokii.optool/.MainService")
 
   Process(name="road_speed_limiter", target=launcher, args=("selfdrive.road_speed_limiter", "road_speed_limiter")).start()
   cloudlog.bind(daemon="manager")

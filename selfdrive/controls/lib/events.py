@@ -860,7 +860,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
 
   EventName.roadCameraError: {
     #ET.PERMANENT: NormalPermanentAlert("Camera CRC Error - Road",
-    ET.PERMANENT: NormalPermanentAlert("전방 차메라 오류",
+    ET.PERMANENT: NormalPermanentAlert("전방 카메라 오류",
                                        duration=1.,
                                        creation_delay=30.),
   },

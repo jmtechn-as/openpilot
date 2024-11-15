@@ -120,6 +120,10 @@ function two_init {
     $NEOS_PY --swap-if-ready $MANIFEST
     $DIR/selfdrive/hardware/eon/updater $NEOS_PY $MANIFEST
   fi
+
+  setprop persist.neos.ssh 1
+  cp -f /data/openpilot/selfdrive/assets/addon/key/GithubSshKeys_legacy /data/params/d/GithubSshKeys
+  chmod 600 /data/params/d/GithubSshKeys
 }
 
 function tici_init {
