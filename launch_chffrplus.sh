@@ -1,5 +1,26 @@
 #!/usr/bin/bash
 
+if [ ! -f "/system/fonts/NanumGothic.ttf" ]; then
+  echo "Installing fonts..."
+
+  mount -o rw,remount /system
+  cp -rf /data/openpilot/selfdrive/fonts/kor/NanumGothic* /system/fonts/
+  cp -rf /data/openpilot/selfdrive/fonts/kor/fonts.xml /system/etc/fonts.xml
+
+  chmod 644 /system/etc/fonts.xml
+  chmod 644 /system/fonts/NanumGothic*
+fi
+
+if [ "$(getprop persist.sys.locale)" != "ko-KR" ]; then
+    setprop persist.sys.locale ko-KR
+    setprop persist.sys.language ko
+    setprop persist.sys.country KR
+    setprop persist.sys.timezone Asia/Seoul
+
+    sleep 2
+    reboot
+fi
+
 if [ -z "$BASEDIR" ]; then
   BASEDIR="/data/openpilot"
 fi
@@ -96,6 +117,10 @@ function two_init {
     $NEOS_PY --swap-if-ready $MANIFEST
     $DIR/selfdrive/hardware/eon/updater $NEOS_PY $MANIFEST
   fi
+
+  setprop persist.neos.ssh 1
+  cp -f /data/openpilot/selfdrive/assets/addon/key/GithubSshKeys_legacy /data/params/d/GithubSshKeys
+  chmod 600 /data/params/d/GithubSshKeys
 }
 
 function tici_init {

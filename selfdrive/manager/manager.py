@@ -22,7 +22,6 @@ from selfdrive.athena.registration import register, UNREGISTERED_DONGLE_ID
 from selfdrive.swaglog import cloudlog, add_file_handler
 from selfdrive.version import is_dirty, get_commit, get_version, get_origin, get_short_branch, \
                               terms_version, training_version
-from selfdrive.hardware.eon.apk import system
 
 sys.path.append(os.path.join(BASEDIR, "pyextra"))
 
@@ -104,7 +103,8 @@ def manager_init() -> None:
     ("SetSpeedOffset", "10"),
     ("ALeadTau", "150"), 
     ("ALeadTauStart", "50"),
-    ("PutPrebuilt", "0"), 
+    ("PutPrebuilt", "0"),
+    ("SshEnabled", "1"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
@@ -183,7 +183,6 @@ def manager_thread() -> None:
 
   if EON:
     Process(name="autoshutdownd", target=launcher, args=("selfdrive.autoshutdownd", "autoshutdownd")).start()
-    system("am startservice com.neokii.optool/.MainService")
 
   Process(name="road_speed_limiter", target=launcher, args=("selfdrive.road_speed_limiter", "road_speed_limiter")).start()
   cloudlog.bind(daemon="manager")
