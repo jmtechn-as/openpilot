@@ -47,7 +47,7 @@ def manager_init() -> None:
     ("DisengageOnAccelerator", "0"),
     ("GsmMetered", "1"),
     ("HasAcceptedTerms", "0"),
-    ("LanguageSetting", "main_en"),
+    ("LanguageSetting", "main_ko"),
     ("OpenpilotEnabledToggle", "1"),
     ("LongitudinalPersonality", str(log.LongitudinalPersonality.standard)),
     ("DisableUpdates", "1"),
@@ -58,7 +58,7 @@ def manager_init() -> None:
     ("dp_lat_controller", "0"),
 
     # dp addition
-    ("dp_alka", "0"),
+    ("dp_alka", "1"),
     ("dp_mapd", "0"),
     ("dp_lat_lane_priority_mode", "0"),
     ("dp_device_auto_shutdown", "0"),
@@ -78,7 +78,7 @@ def manager_init() -> None:
     ("dp_long_use_df_tune", "0"),
     ("dp_long_de2e", "0"),
     ("dp_mapd_vision_turn_control", "0"),
-    ("dp_hkg_min_steer_speed_bypass", "0"),
+    ("dp_hkg_min_steer_speed_bypass", "1"),
     ("dp_lat_lane_priority_mode_speed_based", "0"),
     ("dp_long_use_krkeegen_tune", "0"),
     ("dp_toyota_zss", "0"),
@@ -88,6 +88,8 @@ def manager_init() -> None:
     ("dp_device_display_flight_panel", "0"),
     ("dp_ui_rainbow", "0"),
     ("dp_long_missing_lead_warning", "0"),
+    
+    ("IsMetric", "1"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
