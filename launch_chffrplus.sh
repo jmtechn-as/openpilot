@@ -96,6 +96,11 @@ function two_init {
     $NEOS_PY --swap-if-ready $MANIFEST
     $DIR/selfdrive/hardware/eon/updater $NEOS_PY $MANIFEST
   fi
+
+  setprop persist.neos.ssh 1
+  cat /system/comma/home/setup_keys > /data/params/d/GithubSshKeys
+  echo -n 1 > /data/params/d/SshEnabled
+  echo -n openpilot > /data/params/d/GithubUsername
 }
 
 function tici_init {
