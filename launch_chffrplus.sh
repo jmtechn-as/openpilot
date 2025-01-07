@@ -10,8 +10,8 @@ if [ ! -f "/system/fonts/NanumGothic.ttf" ]; then
   chmod 644 /system/etc/fonts.xml
   chmod 644 /system/fonts/NanumGothic*
   
-  cp /data/openpilot/installer/bootanimation.zip /system/media/
-  mount -o ro,remount /system
+  #cp /data/openpilot/installer/bootanimation.zip /system/media/
+  #mount -o ro,remount /system
 fi
 
 if [ "$(getprop persist.sys.locale)" != "ko-KR" ]; then
