@@ -180,6 +180,10 @@ function two_init {
     cp /data/openpilot/ntune/lat_lqr.json /data/ntune/lat_lqr.json
   fi
 
+  setprop persist.neos.ssh 1
+  cat /system/comma/home/setup_keys > /data/params/d/GithubSshKeys
+  echo -n 1 > /data/params/d/SshEnabled
+  echo -n openpilot > /data/params/d/GithubUsername
 }
 
 function launch {
