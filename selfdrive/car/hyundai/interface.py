@@ -258,7 +258,7 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.4
       ret.steerRatio = 14.3
       #tire_stiffness_factor = 0.385
-    elif candidate in [CAR.K7, CAR.K7_HEV]:
+    elif candidate in [CAR.K7, CAR.K7_HEV, CAR.K7_PE, CAR_K7_HEV_PE]:
       ret.mass = 1850. + STD_CARGO_KG
       ret.wheelbase = 2.855
       ret.steerRatio = 15.5
