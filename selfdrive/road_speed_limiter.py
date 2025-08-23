@@ -1,7 +1,5 @@
 import json
 import os
-import random
-
 import select
 import threading
 import time
@@ -15,7 +13,6 @@ from common.realtime import sec_since_boot
 from common.conversions import Conversions as CV
 
 CAMERA_SPEED_FACTOR = 1.05
-
 
 class Port:
   BROADCAST_PORT = 2899
@@ -265,23 +262,6 @@ def main():
         dat.roadLimitSpeed.sectionLimitSpeed = server.get_limit_val("section_limit_speed", 0)
         dat.roadLimitSpeed.sectionLeftDist = server.get_limit_val("section_left_dist", 0)
         dat.roadLimitSpeed.camSpeedFactor = server.get_limit_val("cam_speed_factor", CAMERA_SPEED_FACTOR)
-
-        try:
-          json = server.json_road_limit
-          if json is not None and "rest_area" in json:
-
-            restAreaList = []
-            for rest_area in json["rest_area"]:
-              restArea = log.RoadLimitSpeed.RestArea.new_message()
-              restArea.image = server.get_json_val(rest_area, "image")
-              restArea.title = server.get_json_val(rest_area, "title")
-              restArea.oilPrice = server.get_json_val(rest_area, "oilPrice")
-              restArea.distance = server.get_json_val(rest_area, "distance")
-              restAreaList.append(restArea)
-
-            dat.roadLimitSpeed.restArea = restAreaList
-        except:
-          pass
 
         roadLimitSpeed.send(dat.to_bytes())
         server.send_sdp(sock)
