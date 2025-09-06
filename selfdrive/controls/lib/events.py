@@ -101,6 +101,7 @@ class Events:
       ret.append(event)
     return ret
 
+# 메세지 한글화 : 로웰 ( https://github.com/crwusiz/openpilot )
 
 class Alert:
   def __init__(self,
@@ -141,7 +142,7 @@ class Alert:
 class NoEntryAlert(Alert):
   def __init__(self, alert_text_2: str, visual_alert: car.CarControl.HUDControl.VisualAlert=VisualAlert.none):
     #super().__init__("openpilot Unavailable", alert_text_2, AlertStatus.normal,
-    super().__init__("오픈파일럿 사용 불가", alert_text_2, AlertStatus.normal,
+    super().__init__("오픈파일럿 사용불가", alert_text_2, AlertStatus.normal,
                      AlertSize.mid, Priority.LOW, visual_alert,
                      AudibleAlert.refuse, 3.)
 
@@ -236,7 +237,7 @@ def below_steer_speed_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: 
   return Alert(
     #f"Steer Unavailable Below {get_display_speed(CP.minSteerSpeed, metric)}",
     #"",
-    f"{get_display_speed(CP.minSteerSpeed, metric)} 이상의 속도에서 조향제어가 가능합니다",
+    f"{get_display_speed(CP.minSteerSpeed, metric)} 이상의 속도에서 조향제어가능합니다",
     "",
     AlertStatus.userPrompt, AlertSize.small,
     Priority.MID, VisualAlert.steerRequired, AudibleAlert.prompt, 0.4)
@@ -257,18 +258,18 @@ def no_gps_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool, soft_
   return Alert(
     #"Poor GPS reception",
     #"Hardware malfunctioning if sky is visible" if gps_integrated else "Check GPS antenna placement",
-    "GPS 수신 불량",
-    "GPS 연결 상태 및 안테나를 점검하세요" if gps_integrated else "GPS 안테나를 점검하세요",
+    "GPS 수신불량",
+    "GPS 연결상태 및 안테나를 점검하세요" if gps_integrated else "GPS 안테나를 점검하세요",
     AlertStatus.normal, AlertSize.mid,
     Priority.LOWER, VisualAlert.none, AudibleAlert.none, .2, creation_delay=300.)
 
 
 def wrong_car_mode_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool, soft_disable_time: int) -> Alert:
   #text = "Cruise Mode Disabled"
-  text = "크루즈 모드 비활성화"
+  text = "크루즈 비활성상태"
   if CP.carName == "honda":
     #text = "Main Switch Off"
-    text = "메인 스위치 꺼짐"
+    text = "메인 스위치 OFF"
   return NoEntryAlert(text)
 
 
@@ -306,12 +307,12 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
 
   EventName.controlsInitializing: {
     #ET.NO_ENTRY: NoEntryAlert("System Initializing"),
-    ET.NO_ENTRY: NoEntryAlert("시스템 초기화 중입니다"),
+    ET.NO_ENTRY: NoEntryAlert("시스템 초기화중입니다"),
   },
 
   EventName.startup: {
     #ET.PERMANENT: StartupAlert("Be ready to take over at any time")
-    ET.PERMANENT: StartupAlert("오픈파일럿 사용 준비 완료")
+    ET.PERMANENT: StartupAlert("오픈파일럿 사용준비 완료")
   },
 
   EventName.startupMaster: {
@@ -327,14 +328,14 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   # Car is not recognized
   EventName.startupNoCar: {
     #ET.PERMANENT: StartupAlert("Dashcam mode for unsupported car"),
-    ET.PERMANENT: StartupAlert("대시캠 모드: 차량이 호환되지 않습니다"),
+    ET.PERMANENT: StartupAlert("대시캠 모드: 호환되지않는 차량"),
   },
 
   EventName.startupNoFw: {
     #ET.PERMANENT: StartupAlert("Car Unrecognized",
                                #"Check comma power connections",
-    ET.PERMANENT: StartupAlert("차량이 인식되지 않았습니다",
-                               "배선 및 연결 상태를 확인하세요",
+    ET.PERMANENT: StartupAlert("차량이 인식되지않습니다",
+                               "배선연결상태를 확인하세요",
                                alert_status=AlertStatus.userPrompt),
   },
 
@@ -347,8 +348,8 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   EventName.invalidLkasSetting: {
     #ET.PERMANENT: NormalPermanentAlert("Stock LKAS is on",
                                        #"Turn off stock LKAS to engage"),
-    ET.PERMANENT: NormalPermanentAlert("LKAS 버튼 확인",
-                                       "오픈파일럿을 활성화하려면 차량에서 LKAS 버튼을 끄세요"),
+    ET.PERMANENT: NormalPermanentAlert("차량 LKAS 버튼 상태확인",
+                                       "차량 LKAS 버튼 OFF후 활성화됩니다"),
   },
 
   EventName.cruiseMismatch: {
@@ -362,7 +363,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     #ET.PERMANENT: NormalPermanentAlert("Dashcam Mode",
                                        #"Car Unrecognized",
     ET.PERMANENT: NormalPermanentAlert("대시캠 모드",
-                                       "배선 연결 상태를 확인하세요",
+                                       "배선연결상태를 확인하세요",
                                        priority=Priority.LOWEST),
   },
 
@@ -371,11 +372,11 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       #"BRAKE!",
       #"Stock AEB: Risk of Collision",
       "브레이크!",
-      "추돌 주의",
+      "추돌 위험",
       AlertStatus.critical, AlertSize.full,
       Priority.HIGHEST, VisualAlert.fcw, AudibleAlert.none, 2.),
     #ET.NO_ENTRY: NoEntryAlert("Stock AEB: Risk of Collision"),
-    ET.NO_ENTRY: NoEntryAlert("전방 추돌 주의: 추돌 위험"),
+    ET.NO_ENTRY: NoEntryAlert("AEB: 추돌위험"),
   },
 
   EventName.fcw: {
@@ -383,7 +384,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       #"BRAKE!",
       #"Risk of Collision",
       "브레이크!",
-      "추돌 주의",
+      "추돌 위험",
       AlertStatus.critical, AlertSize.full,
       Priority.HIGHEST, VisualAlert.fcw, AudibleAlert.warningSoft, 2.),
   },
@@ -393,7 +394,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       #"Lane Departure Detected",
       #"",
       "핸들을 잡아주세요",
-      "차선이탈 감지",
+      "차선이탈 감지됨",
       AlertStatus.userPrompt, AlertSize.small,
       Priority.LOW, VisualAlert.ldw, AudibleAlert.prompt, 3.),
   },
@@ -440,7 +441,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       #"Pay Attention",
       #"Driver Distracted",
       "도로를 주시하세요",
-      "운전자 도로 주시 불안",
+      "운전자 도로주시 불안",
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.MID, VisualAlert.steerRequired, AudibleAlert.promptDistracted, .1),
   },
@@ -449,8 +450,8 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.WARNING: Alert(
       #"DISENGAGE IMMEDIATELY",
       #"Driver Distracted",
-      "조향 제어가 해제됩니다",
-      "운전자 도로 주시 불안",
+      "조향제어가 해제됩니다",
+      "운전자 도로주시 불안",
       AlertStatus.critical, AlertSize.full,
       Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.warningImmediate, .1),
   },
@@ -470,7 +471,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       #"Touch Steering Wheel",
       #"Driver Unresponsive",
       "핸들을 잡아주세요",
-      "운전자가 응답하지 않습니다",
+      "운전자 응답하지않음",
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.MID, VisualAlert.steerRequired, AudibleAlert.promptDistracted, .1),
   },
@@ -479,8 +480,8 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.WARNING: Alert(
       #"DISENGAGE IMMEDIATELY",
       #"Driver Unresponsive",
-      "조향 제어가 해제됩니다",
-      "운전자가 응답하지 않습니다",
+      "조향제어가 해제됩니다",
+      "운전자 응답하지않음",
       AlertStatus.critical, AlertSize.full,
       Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.warningImmediate, .1),
   },
@@ -490,7 +491,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       #"TAKE CONTROL",
       #"Resume Driving Manually",
       "핸들을 잡아주세요",
-      "운전자가 직접 제어하세요",
+      "수동으로 재활성하세요",
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.LOW, VisualAlert.none, AudibleAlert.none, .2),
   },
@@ -499,8 +500,8 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.WARNING: Alert(
       #"STOPPED",
       #"Press Resume to Go",
-      "앞 차량 멈춤",
-      "출발하려면 +버튼을 위로 올리세요",
+      "앞차량 멈춤",
+      "출발하려면 RES버튼을 누르세요",
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.LOW, VisualAlert.none, AudibleAlert.none, .2),
   },
@@ -513,7 +514,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.WARNING: Alert(
       #"Steer Left to Start Lane Change Once Safe",
       #"",
-      "왼쪽 차선으로 차선을 변경합니다",
+      "좌측차선으로 차선을 변경합니다",
       "",
       AlertStatus.normal, AlertSize.small,
       Priority.LOW, VisualAlert.none, AudibleAlert.none, .1, alert_rate=0.75),
@@ -523,7 +524,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.WARNING: Alert(
       #"Steer Right to Start Lane Change Once Safe",
       #"",
-      "오른쪽 차선으로 차선을 변경합니다",
+      "우측차선으로 차선을 변경합니다",
       "",
       AlertStatus.normal, AlertSize.small,
       Priority.LOW, VisualAlert.none, AudibleAlert.none, .1, alert_rate=0.75),
@@ -533,7 +534,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.WARNING: Alert(
       #"Car Detected in Blindspot",
       #"",
-      "차량 감지: 주의하세요",
+      "차선에 차량이 감지되니 대기하세요",
       "",
       AlertStatus.userPrompt, AlertSize.small,
       Priority.LOW, VisualAlert.none, AudibleAlert.prompt, .1),
@@ -554,7 +555,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       #"Take Control",
       #"Turn Exceeds Steering Limit",
       "핸들을 잡아주세요",
-      "조향 제어 값을 초과하였습니다",
+      "조향제어 제한을 초과함",
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.LOW, VisualAlert.steerRequired, AudibleAlert.promptRepeat, 1.),
   },
@@ -572,8 +573,8 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   },
   # Camera framerate too low
   EventName.cameraFrameRate: {
-    #ET.PERMANENT: NormalPermanentAlert("카메라 오작동", "시스템을 재부팅 하세요"),
-    ET.PERMANENT: NormalPermanentAlert("Camera Frame Rate Low", "Reboot your Device"),
+    #ET.PERMANENT: NormalPermanentAlert("Camera Frame Rate Low", "Reboot your Device"),
+    ET.PERMANENT: NormalPermanentAlert("카메라 프레임 낮음", "장치를 재부팅 하세요"),
   },
 
   # Unused
@@ -610,7 +611,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   EventName.brakeHold: {
     ET.USER_DISABLE: EngagementAlert(AudibleAlert.disengage),
     #ET.NO_ENTRY: NoEntryAlert("Brake Hold Active"),
-    ET.NO_ENTRY: NoEntryAlert("주차 브레이크가 활성화되었습니다"),
+    ET.NO_ENTRY: NoEntryAlert("브레이크 감지됨"),
   },
 
   EventName.parkBrake: {
@@ -652,21 +653,21 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   EventName.wrongCruiseMode: {
     ET.USER_DISABLE: EngagementAlert(AudibleAlert.disengage),
     #ET.NO_ENTRY: NoEntryAlert("Adaptive Cruise Disabled"),
-    ET.NO_ENTRY: NoEntryAlert("어댑티브크루즈를 활성화하세요"),
+    ET.NO_ENTRY: NoEntryAlert("어뎁티브크루즈를 활성화하세요"),
   },
 
   EventName.steerTempUnavailable: {
     #ET.SOFT_DISABLE: soft_disable_alert("Steering Temporarily Unavailable"),
     #ET.NO_ENTRY: NoEntryAlert("Steering Temporarily Unavailable"),
-    ET.SOFT_DISABLE: soft_disable_alert("조향 제어를 일시적으로 사용할 수 없습니다"),
-    ET.NO_ENTRY: NoEntryAlert("조향 제어를 일시적으로 사용할 수 없습니다"),
+    ET.SOFT_DISABLE: soft_disable_alert("조향제어 일시적으로 사용불가"),
+    ET.NO_ENTRY: NoEntryAlert("조향제어 일시적으로 사용불가"),
   },
 
   EventName.outOfSpace: {
     #ET.PERMANENT: NormalPermanentAlert("Out of Storage"),
     #ET.NO_ENTRY: NoEntryAlert("Out of Storage"),
-    ET.PERMANENT: NormalPermanentAlert("저장 공간이 부족합니다"),
-    ET.NO_ENTRY: NoEntryAlert("저장 공간이 부족합니다"),
+    ET.PERMANENT: NormalPermanentAlert("저장공간 부족"),
+    ET.NO_ENTRY: NoEntryAlert("저장공간 부족"),
   },
 
   EventName.belowEngageSpeed: {
@@ -692,8 +693,8 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   EventName.soundsUnavailable: {
     #ET.PERMANENT: NormalPermanentAlert("Speaker not found", "Reboot your Device"),
     #ET.NO_ENTRY: NoEntryAlert("Speaker not found"),
-    ET.PERMANENT: NormalPermanentAlert("스피커 장치를 찾을 수 없습니다", "시스템을 재부팅하세요"),
-    ET.NO_ENTRY: NoEntryAlert("스피커 장치를 찾을 수 없습니다"),
+    ET.PERMANENT: NormalPermanentAlert("스피커가 감지되지않습니다", "장치를 점검하세요"),
+    ET.NO_ENTRY: NoEntryAlert("스피커가 감지되지않습니다"),
   },
 
   EventName.soundsUnavailableOnce: {
@@ -711,23 +712,23 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
 
   EventName.tooDistracted: {
     #ET.NO_ENTRY: NoEntryAlert("Distraction Level Too High"),
-    ET.NO_ENTRY: NoEntryAlert("주의산만: 휴식이 필요합니다"),
+    ET.NO_ENTRY: NoEntryAlert("방해 수준이 너무높습니다"),
   },
 
   EventName.overheat: {
     #ET.PERMANENT: NormalPermanentAlert("System Overheated"),
     #ET.SOFT_DISABLE: soft_disable_alert("System Overheated"),
     #ET.NO_ENTRY: NoEntryAlert("System Overheated"),
-    ET.PERMANENT: NormalPermanentAlert("시스템 과열"),
-    ET.SOFT_DISABLE: soft_disable_alert("시스템 과열"),
-    ET.NO_ENTRY: NoEntryAlert("시스템 과열"),
+    ET.PERMANENT: NormalPermanentAlert("장치 과열됨"),
+    ET.SOFT_DISABLE: soft_disable_alert("장치 과열됨"),
+    ET.NO_ENTRY: NoEntryAlert("장치 과열됨"),
   },
 
   EventName.wrongGear: {
     #ET.SOFT_DISABLE: user_soft_disable_alert("Gear not D"),
     #ET.NO_ENTRY: NoEntryAlert("Gear not D"),
-    ET.SOFT_DISABLE: user_soft_disable_alert("기어가 D에 위치하지 않았습니다"),
-    ET.NO_ENTRY: NoEntryAlert("기어가 D에 위치하지 않았습니다"),
+    ET.USER_DISABLE: EngagementAlert(AudibleAlert.disengage),
+    ET.NO_ENTRY: NoEntryAlert("기어를 [D]로 변경하세요"),
   },
 
   # This alert is thrown when the calibration angles are outside of the acceptable range.
@@ -739,43 +740,55 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     #ET.PERMANENT: NormalPermanentAlert("Calibration Invalid", "Remount Device and Recalibrate"),
     #ET.SOFT_DISABLE: soft_disable_alert("Calibration Invalid: Remount Device & Recalibrate"),
     #ET.NO_ENTRY: NoEntryAlert("Calibration Invalid: Remount Device & Recalibrate"),
-    ET.PERMANENT: NormalPermanentAlert("캘리브레이션 오류", "장치를 정확히 부착 후 캘리브레이션을 다시 하세요"),
-    ET.SOFT_DISABLE: soft_disable_alert("캘리브레이션 오류: 장치를 정확히 부착 후 캘리브레이션을 다시 하세요"),
-    ET.NO_ENTRY: NoEntryAlert("캘리브레이션 오류: 장치를 정확히 부착 후 캘리브레이션을 다시 하세요"),
+    ET.PERMANENT: NormalPermanentAlert("캘리브레이션 오류", "장치 위치변경후 캘리브레이션을 다시하세요"),
+    ET.SOFT_DISABLE: soft_disable_alert("캘리브레이션 오류: 장치 위치변경후 캘리브레이션을 다시하세요"),
+    ET.NO_ENTRY: NoEntryAlert("캘리브레이션 오류: 장치 위치변경후 캘리브레이션을 다시하세요"),
   },
 
   EventName.calibrationIncomplete: {
     ET.PERMANENT: calibration_incomplete_alert,
     #ET.SOFT_DISABLE: soft_disable_alert("Calibration in Progress"),
     #ET.NO_ENTRY: NoEntryAlert("Calibration in Progress"),
-    ET.SOFT_DISABLE: soft_disable_alert("캘리브레이션을 진행하고 있습니다"),
-    ET.NO_ENTRY: NoEntryAlert("캘리브레이션을 진행하고 있습니다"),
+    ET.SOFT_DISABLE: soft_disable_alert("캘리브레이션 진행중입니다"),
+    ET.NO_ENTRY: NoEntryAlert("캘리브레이션 진행중입니다"),
   },
 
   EventName.doorOpen: {
     #ET.SOFT_DISABLE: user_soft_disable_alert("Door Open"),
     #ET.NO_ENTRY: NoEntryAlert("Door Open"),
-    ET.SOFT_DISABLE: user_soft_disable_alert("문이 열렸습니다"),
-    ET.NO_ENTRY: NoEntryAlert("문이 열렸습니다"),
+    ET.PERMANENT: Alert(
+      "도어 열림",
+      "",
+      AlertStatus.normal, AlertSize.full,
+      Priority.LOWEST, VisualAlert.none, AudibleAlert.none, .2, creation_delay=0.5),
+    ET.USER_DISABLE: EngagementAlert(AudibleAlert.disengage),
+    ET.NO_ENTRY: NoEntryAlert("도어 열림"),
   },
 
   EventName.seatbeltNotLatched: {
     #ET.SOFT_DISABLE: user_soft_disable_alert("Seatbelt Unlatched"),
     #ET.NO_ENTRY: NoEntryAlert("Seatbelt Unlatched"),
-    ET.SOFT_DISABLE: user_soft_disable_alert("안전벨트를 착용하세요"),
-    ET.NO_ENTRY: NoEntryAlert("안전벨트를 착용하세요"),
+    ET.PERMANENT: Alert(
+      "안전벨트 미착용",
+      "",
+      AlertStatus.normal, AlertSize.full,
+      Priority.LOWEST, VisualAlert.none, AudibleAlert.none, .2, creation_delay=0.5),
+    ET.SOFT_DISABLE: user_soft_disable_alert("안전벨트를 착용해주세요"),
+    ET.NO_ENTRY: NoEntryAlert("안전벨트를 착용해주세요"),
   },
 
   EventName.espDisabled: {
     #ET.SOFT_DISABLE: soft_disable_alert("ESP Off"),
     #ET.NO_ENTRY: NoEntryAlert("ESP Off"),
-    ET.SOFT_DISABLE: soft_disable_alert("차체 자세 제어장치(ESP)가 꺼져있습니다"),
-    ET.NO_ENTRY: NoEntryAlert("차체 자세 제어장치(ESP)가 꺼져있습니다"),
+    ET.SOFT_DISABLE: soft_disable_alert("ESP 꺼짐"),
+    ET.NO_ENTRY: NoEntryAlert("ESP 꺼짐"),
   },
 
   EventName.lowBattery: {
-    ET.SOFT_DISABLE: soft_disable_alert("배터리가 부족합니다"),
-    ET.NO_ENTRY: NoEntryAlert("배터리가 부족합니다"),
+    #ET.SOFT_DISABLE: soft_disable_alert("Low Battery"),
+    #ET.NO_ENTRY: NoEntryAlert("Low Battery"),
+    ET.SOFT_DISABLE: soft_disable_alert("배터리 부족"),
+    ET.NO_ENTRY: NoEntryAlert("배터리 부족"),
   },
 
   # Different openpilot services communicate between each other at a certain
@@ -785,27 +798,27 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   EventName.commIssue: {
     #ET.SOFT_DISABLE: soft_disable_alert("Communication Issue between Processes"),
     #ET.NO_ENTRY: NoEntryAlert("Communication Issue between Processes"),
-    ET.SOFT_DISABLE: soft_disable_alert("장치에서 프로세서 오류가 발생했습니다"),
-    ET.NO_ENTRY: NoEntryAlert("장치에서 프로세서 오류가 발생했습니다"),
+    ET.SOFT_DISABLE: soft_disable_alert("장치 프로세스 동작오류"),
+    ET.NO_ENTRY: NoEntryAlert("장치 프로세스 동작오류"),
   },
   EventName.commIssueAvgFreq: {
     #ET.SOFT_DISABLE: soft_disable_alert("Low Communication Rate between Processes"),
     #ET.NO_ENTRY: NoEntryAlert("Low Communication Rate between Processes"),
-    ET.SOFT_DISABLE: soft_disable_alert("장치에서 프로세서 통신속도가 느립니다"),
-    ET.NO_ENTRY: NoEntryAlert("장치에서 프로세서 통신속도가 느립니다"),
+    ET.SOFT_DISABLE: soft_disable_alert("장치 프로세스 통신속도 오류"),
+    ET.NO_ENTRY: NoEntryAlert("장치 프로세스 통신속도 오류"),
   },
 
   # Thrown when manager detects a service exited unexpectedly while driving
   EventName.processNotRunning: {
     #ET.NO_ENTRY: NoEntryAlert("System Malfunction: Reboot Your Device"),
-    ET.NO_ENTRY: NoEntryAlert("시스템 작동 불가: 시스템을 재부팅하세요"),
+    ET.NO_ENTRY: NoEntryAlert("시스템 오작동: 장치를 재부팅 하세요"),
   },
 
   EventName.radarFault: {
     #ET.SOFT_DISABLE: soft_disable_alert("Radar Error: Restart the Car"),
     #ET.NO_ENTRY: NoEntryAlert("Radar Error: Restart the Car"),
-    ET.SOFT_DISABLE: soft_disable_alert("레이더 오류: 시동을 다시 걸어주세요"),
-    ET.NO_ENTRY: NoEntryAlert("레이더 오류: 시동을 다시 걸어주세요"),
+    ET.SOFT_DISABLE: soft_disable_alert("레이더 오류: 차량을 재가동하세요"),
+    ET.NO_ENTRY: NoEntryAlert("레이더 오류: 차량을 재가동하세요"),
   },
 
   # Every frame from the camera should be processed by the model. If modeld
@@ -814,8 +827,8 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   EventName.modeldLagging: {
     #ET.SOFT_DISABLE: soft_disable_alert("Driving model lagging"),
     #ET.NO_ENTRY: NoEntryAlert("Driving model lagging"),
-    ET.SOFT_DISABLE: soft_disable_alert("주행 모델이 지연되었습니다"),
-    ET.NO_ENTRY: NoEntryAlert("주행 모델이 지연되었습니다"),
+    ET.SOFT_DISABLE: soft_disable_alert("주행모델 지연됨"),
+    ET.NO_ENTRY: NoEntryAlert("주행모델 지연됨"),
   },
 
   # Besides predicting the path, lane lines and lead car data the model also
@@ -826,8 +839,8 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   EventName.posenetInvalid: {
     #ET.SOFT_DISABLE: soft_disable_alert("Model Output Uncertain"),
     #ET.NO_ENTRY: NoEntryAlert("Model Output Uncertain"),
-    ET.SOFT_DISABLE: soft_disable_alert("모델 출력이 불확실합니다"),
-    ET.NO_ENTRY: NoEntryAlert("모델 출력이 불확실합니다"),
+	  ET.SOFT_DISABLE: soft_disable_alert("모델 출력 불확실"),
+	  ET.NO_ENTRY: NoEntryAlert("모델 출력 불확실"),
   },
 
   # When the localizer detects an acceleration of more than 40 m/s^2 (~4G) we
@@ -835,24 +848,24 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   EventName.deviceFalling: {
     #ET.SOFT_DISABLE: soft_disable_alert("Device Fell Off Mount"),
     #ET.NO_ENTRY: NoEntryAlert("Device Fell Off Mount"),
-    ET.SOFT_DISABLE: soft_disable_alert("장치가 마운트에서 떨어졌습니다"),
-    ET.NO_ENTRY: NoEntryAlert("장치가 마운트에서 떨어졌습니다"),
+    ET.SOFT_DISABLE: soft_disable_alert("장치가 마운트에서 떨어짐"),
+    ET.NO_ENTRY: NoEntryAlert("장치가 마운트에서 떨어짐"),
   },
 
   EventName.lowMemory: {
     #ET.SOFT_DISABLE: soft_disable_alert("Low Memory: Reboot Your Device"),
     #ET.PERMANENT: NormalPermanentAlert("Low Memory", "Reboot your Device"),
     #ET.NO_ENTRY: NoEntryAlert("Low Memory: Reboot Your Device"),
-    ET.SOFT_DISABLE: soft_disable_alert("메모리 부족: 시스템을 재부팅하세요"),
-    ET.PERMANENT: NormalPermanentAlert("메모리 부족: 시스템을 재부팅하세요"),
-    ET.NO_ENTRY: NoEntryAlert("메모리 부족: 시스템을 재부팅하세요"),
+    ET.SOFT_DISABLE: soft_disable_alert("메모리 부족: 장치를 재가동하세요"),
+    ET.PERMANENT: NormalPermanentAlert("메모리 부족", "장치를 재가동하세요"),
+    ET.NO_ENTRY: NoEntryAlert("메모리 부족: 장치를 재가동하세요"),
   },
 
   EventName.highCpuUsage: {
     #ET.SOFT_DISABLE: soft_disable_alert("System Malfunction: Reboot Your Device"),
     #ET.PERMANENT: NormalPermanentAlert("System Malfunction", "Reboot your Device"),
     #ET.NO_ENTRY: NoEntryAlert("System Malfunction: Reboot Your Device"),
-    ET.NO_ENTRY: NoEntryAlert("시스템 작동 불가: 시스템을 재부팅하세요"),
+    ET.NO_ENTRY: NoEntryAlert("시스템 오작동: 장치를 재부팅 하세요"),
   },
 
   EventName.accFaulted: {
@@ -866,19 +879,21 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
 
   EventName.controlsMismatch: {
     #ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("Controls Mismatch"),
+    #ET.NO_ENTRY: NoEntryAlert("Controls Mismatch"),
     ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("컨트롤 불일치"),
+	  ET.NO_ENTRY: NoEntryAlert("컨트롤 불일치"),
   },
 
   EventName.roadCameraError: {
     #ET.PERMANENT: NormalPermanentAlert("Camera CRC Error - Road",
-    ET.PERMANENT: NormalPermanentAlert("전방 카메라 오류",
+    ET.PERMANENT: NormalPermanentAlert("주행 카메라 오류",
                                        duration=1.,
                                        creation_delay=30.),
   },
 
   EventName.wideRoadCameraError: {
-    #ET.PERMANENT: NormalPermanentAlert("와이드 주행 카메라 오류",
-    ET.PERMANENT: NormalPermanentAlert("",
+    #ET.PERMANENT: NormalPermanentAlert("Camera CRC Error - Road Fisheye",
+    ET.PERMANENT: NormalPermanentAlert("와이드 주행카메라 오류",
                                        duration=1.,
                                        creation_delay=30.),
   },
@@ -907,76 +922,76 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   # If you're not writing a new car port, this is usually cause by faulty wiring
   EventName.canError: {
     #ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("CAN Error"),
-    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("CAN 오류"),
+    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("CAN 오류: 장치를 점검하세요"),
     ET.PERMANENT: Alert(
+      #"CAN Error: Check Connections",
       "CAN 오류: 장치를 점검하세요",
       "",
       AlertStatus.normal, AlertSize.small,
       Priority.LOW, VisualAlert.none, AudibleAlert.none, 1., creation_delay=1.),
+    #ET.NO_ENTRY: NoEntryAlert("CAN Error: Check Connections"),
     ET.NO_ENTRY: NoEntryAlert("CAN 오류: 장치를 점검하세요"),
   },
 
   EventName.canBusMissing: {
     #ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("CAN Bus Disconnected"),
-    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("CAN Bus 연결 끊김"),
+    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("CAN Bus 연결 끈김"),
     ET.PERMANENT: Alert(
       #"CAN Bus Disconnected: Likely Faulty Cable",
-      #"",
-      "CAN Bus 연결 끊김: 하네스를 점검하세요",
+      "CAN Bus 오류: 케이블을 점검하세요",
       "",
       AlertStatus.normal, AlertSize.small,
       Priority.LOW, VisualAlert.none, AudibleAlert.none, 1., creation_delay=1.),
     #ET.NO_ENTRY: NoEntryAlert("CAN Bus Disconnected: Check Connections"),
-    ET.NO_ENTRY: NoEntryAlert("CAN Bus 연결 끊김: 하네스를 점검하세요"),
+    ET.NO_ENTRY: NoEntryAlert("CAN Bus 오류: 장치를 점검하세요"),
   },
 
   EventName.steerUnavailable: {
     #ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("LKAS Fault: Restart the Car"),
     #ET.PERMANENT: NormalPermanentAlert("LKAS Fault: Restart the car to engage"),
     #ET.NO_ENTRY: NoEntryAlert("LKAS Fault: Restart the Car"),
-    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("LKAS 오류: 시동을 다시 걸어주세요"),
-    ET.PERMANENT: NormalPermanentAlert("LKAS 오류: 시동을 다시 걸어주세요"),
-    ET.NO_ENTRY: NoEntryAlert("LKAS 오류: 시동을 다시 걸어주세요"),
+    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("LKAS 오류: 차량을 재가동하세요"),
+    ET.PERMANENT: NormalPermanentAlert("LKAS 오류: 차량을 재가동하세요"),
+    ET.NO_ENTRY: NoEntryAlert("LKAS 오류: 차량을 재가동하세요"),
   },
 
   EventName.brakeUnavailable: {
     #ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("Cruise Fault: Restart the Car"),
     #ET.PERMANENT: NormalPermanentAlert("Cruise Fault: Restart the car to engage"),
     #ET.NO_ENTRY: NoEntryAlert("Cruise Fault: Restart the Car"),
-    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("크루즈 오류: 시동을 다시 걸어주세요"),
-    ET.PERMANENT: NormalPermanentAlert("크루즈 오류: 시동을 다시 걸어주세요"),
-    ET.NO_ENTRY: NoEntryAlert("크루즈 오류: 시동을 다시 걸어주세요"),
+    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("크루즈 오류: 차량을 재가동하세요"),
+    ET.PERMANENT: NormalPermanentAlert("크루즈 오류: 차량을 재가동하세요"),
+    ET.NO_ENTRY: NoEntryAlert("크루즈 오류: 차량을 재가동하세요"),
   },
 
   EventName.reverseGear: {
     ET.PERMANENT: Alert(
       #"Reverse\nGear",
-      #"",
-      "후진중\n주의하세요",
+      "기어 [R] 상태",
       "",
       AlertStatus.normal, AlertSize.full,
       Priority.LOWEST, VisualAlert.none, AudibleAlert.none, .2, creation_delay=0.5),
     #ET.SOFT_DISABLE: SoftDisableAlert("Reverse Gear"),
     #ET.NO_ENTRY: NoEntryAlert("Reverse Gear"),
-    ET.SOFT_DISABLE: SoftDisableAlert("후진기어"),
-    ET.NO_ENTRY: NoEntryAlert("후진기어"),
+    ET.USER_DISABLE: SoftDisableAlert("기어 [R] 상태"),
+    ET.NO_ENTRY: NoEntryAlert("기어 [R] 상태"),
   },
 
   # On cars that use stock ACC the car can decide to cancel ACC for various reasons.
   # When this happens we can no long control the car so the user needs to be warned immediately.
   EventName.cruiseDisabled: {
     #ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("Cruise Is Off"),
-    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("크루즈가 꺼져 있습니다"),
+    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("크루즈 꺼짐"),
   },
 
   # For planning the trajectory Model Predictive Control (MPC) is used. This is
   # an optimization algorithm that is not guaranteed to find a feasible solution.
   # If no solution is found or the solution has a very high cost this alert is thrown.
   EventName.plannerError: {
-    #ET.SOFT_DISABLE: SoftDisableAlert("Planner Solution Error"),
+    #ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("Planner Solution Error"),
     #ET.NO_ENTRY: NoEntryAlert("Planner Solution Error"),
-    ET.SOFT_DISABLE: SoftDisableAlert("플래너 솔루션 오류입니다"),
-    ET.NO_ENTRY: NoEntryAlert("플래너 솔루션 오류입니다"),
+    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("플래너 솔루션 오류"),
+    ET.NO_ENTRY: NoEntryAlert("플래너 솔루션 오류"),
   },
 
   # When the relay in the harness box opens the CAN bus between the LKAS camera
@@ -996,19 +1011,19 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.IMMEDIATE_DISABLE: Alert(
       #"openpilot Canceled",
       #"No close lead car",
-      "오픈파일럿 사용 불가",
-      "전방에 차량이 없습니다",
+      "오픈파일럿 사용불가",
+      "근접 앞차량이 없습니다",
       AlertStatus.normal, AlertSize.mid,
       Priority.HIGH, VisualAlert.none, AudibleAlert.disengage, 3.),
-    ET.NO_ENTRY: NoEntryAlert("전방에 차량이 없습니다"),
+    ET.NO_ENTRY: NoEntryAlert("No Close Lead Car"),
   },
 
   EventName.speedTooLow: {
     ET.IMMEDIATE_DISABLE: Alert(
       #"openpilot Canceled",
       #"Speed too low",
-      "오픈파일럿 사용 불가",
-      "속도가 너무 낮습니다",
+      "오픈파일럿 사용불가",
+      "속도를 높이고 재가동하세요",
       AlertStatus.normal, AlertSize.mid,
       Priority.HIGH, VisualAlert.none, AudibleAlert.disengage, 3.),
   },
@@ -1018,34 +1033,33 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.WARNING: Alert(
       #"Speed Too High",
       #"Model uncertain at this speed",
-      "속도가 높습니다",
+      "속도가 너무 높습니다",
       "속도를 줄여주세요",
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.HIGH, VisualAlert.steerRequired, AudibleAlert.promptRepeat, 4.),
     #ET.NO_ENTRY: NoEntryAlert("Slow down to engage"),
-    ET.NO_ENTRY: NoEntryAlert("속도를 줄이고 오픈파일럿을 활성화하세요"),
+    ET.NO_ENTRY: NoEntryAlert("속도를 줄이고 재가동하세요"),
   },
 
   EventName.lowSpeedLockout: {
     #ET.PERMANENT: NormalPermanentAlert("Cruise Fault: Restart the car to engage"),
     #ET.NO_ENTRY: NoEntryAlert("Cruise Fault: Restart the Car"),
-    ET.PERMANENT: NormalPermanentAlert("크루즈 오류: 시동을 다시 걸어주세요"),
-    ET.NO_ENTRY: NoEntryAlert("크루즈 오류: 시동을 다시 걸어주세요"),
+    ET.PERMANENT: NormalPermanentAlert("크루즈 오류: 차량을 재가동하세요"),
+    ET.NO_ENTRY: NoEntryAlert("크루즈 오류: 차량을 재가동하세요"),
   },
 
   EventName.lkasDisabled: {
     #ET.PERMANENT: NormalPermanentAlert("LKAS Disabled: Enable LKAS to engage"),
     #ET.NO_ENTRY: NoEntryAlert("LKAS Disabled"),
-    ET.PERMANENT: NormalPermanentAlert("LKAS 비활성화: LKAS를 활성화하고 오픈파일럿을 활성화하세요 "),
-    ET.NO_ENTRY: NoEntryAlert("LKAS 비활성화"),
+	  ET.PERMANENT: NormalPermanentAlert("LKAS 꺼짐: 스위치를 켜고 활성화하세요"),
+	  ET.NO_ENTRY: NoEntryAlert("LKAS 꺼짐"),
   },
 
   EventName.turningIndicatorOn: {
     ET.WARNING: Alert(
-      #"TAKE CONTROL",
       #"Steer Unavailable while Turning",
-      "핸들을 즉시 잡아주세요",
-      "방향지시등 작동 중에는 핸들을 잡아주세요",
+      "방향지시등 동작중에는 핸들을 잡아주세요",
+      "",
       AlertStatus.userPrompt, AlertSize.small,
       Priority.LOW, VisualAlert.none, AudibleAlert.none, .2),
   },
