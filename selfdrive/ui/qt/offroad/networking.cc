@@ -145,7 +145,6 @@ AdvancedNetworking::AdvancedNetworking(QWidget* parent, WifiManager* wifi): QWid
   // SSH keys
   list->addItem(new SshToggle());
   list->addItem(new SshControl());
-  list->addItem(horizontal_line());
 
   // add
   const char* gitpull = "sh /data/openpilot/gitpull.sh";
@@ -158,8 +157,7 @@ AdvancedNetworking::AdvancedNetworking(QWidget* parent, WifiManager* wifi): QWid
       }
   });
   list->addItem(gitpullbtn);
-  list->addItem(horizontal_line());
-  
+
   // Roaming toggle
   const bool roamingEnabled = params.getBool("GsmRoaming");
   ToggleControl *roamingToggle = new ToggleControl("Enable Roaming", "", "", roamingEnabled);

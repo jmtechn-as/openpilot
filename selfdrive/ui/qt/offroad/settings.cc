@@ -102,7 +102,22 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   setSpacing(50);
   addItem(new LabelControl("Dongle ID", getDongleId().value_or("N/A")));
   addItem(new LabelControl("Serial", params.get("HardwareSerial").c_str()));
-  
+
+    auto dcamBtn = new ButtonControl("운전자 모니터링 미리보기", "실행",
+                                   "운전자 모니터링 카메라를 미리보고 최적의 장착위치를 찾아보세요.");
+  connect(dcamBtn, &ButtonControl::clicked, [=]() { emit showDriverView(); });
+  addItem(dcamBtn);
+
+  auto resetCalibBtn = new ButtonControl("캘리브레이션 리셋", "실행", " ");
+  connect(resetCalibBtn, &ButtonControl::showDescription, this, &DevicePanel::updateCalibDescription);
+  connect(resetCalibBtn, &ButtonControl::clicked, [&]() {
+    if (ConfirmationDialog::confirm("캘리브레이션 리셋을 실행하시겠습니까?", this)) {
+      params.remove("CalibrationParams");
+      params.remove("LiveTorqueParameters");
+      params.remove("LiveTorqueCarParams");
+    }
+  });
+  addItem(resetCalibBtn);
   
   // soft reboot button
   QHBoxLayout *reset_layout = new QHBoxLayout(); //새로운 버튼 추가를 위한 레이아웃 변수 reset
@@ -179,26 +194,8 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
     #poweroff_btn:pressed { background-color: #FF2424; }
   )");
   addItem(power_layout);
-  
-  // offroad-only buttons
 
-  auto dcamBtn = new ButtonControl("운전자 모니터링 미리보기", "실행",
-                                   "운전자 모니터링 카메라를 미리보고 최적의 장착위치를 찾아보세요.");
-  connect(dcamBtn, &ButtonControl::clicked, [=]() { emit showDriverView(); });
-  addItem(dcamBtn);
-
-  auto resetCalibBtn = new ButtonControl("캘리브레이션 리셋", "실행", " ");
-  connect(resetCalibBtn, &ButtonControl::showDescription, this, &DevicePanel::updateCalibDescription);
-  connect(resetCalibBtn, &ButtonControl::clicked, [&]() {
-    if (ConfirmationDialog::confirm("캘리브레이션 리셋을 실행하시겠습니까?", this)) {
-      params.remove("CalibrationParams");
-      params.remove("LiveTorqueParameters");
-      params.remove("LiveTorqueCarParams");
-    }
-  });
-  addItem(resetCalibBtn);
-
-  if (!params.getBool("Passive")) {
+  /*if (!params.getBool("Passive")) {
     auto retrainingBtn = new ButtonControl("트레이닝 가이드", "실행", "Review the rules, features, and limitations of openpilot");
     connect(retrainingBtn, &ButtonControl::clicked, [=]() {
       if (ConfirmationDialog::confirm("트레이닝 가이드를 실행하시겠습니까?", this)) {
@@ -217,7 +214,7 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
     addItem(regulatoryBtn);
   }
 
-  /*QObject::connect(uiState(), &UIState::offroadTransition, [=](bool offroad) {
+  QObject::connect(uiState(), &UIState::offroadTransition, [=](bool offroad) {
     for (auto btn : findChildren<ButtonControl *>()) {
       btn->setEnabled(offroad);
     }
@@ -438,7 +435,7 @@ VIPPanel::VIPPanel(QWidget* parent) : QWidget(parent) {
                                             "../assets/offroad/icon_shell.png",
                                             this));
   layout->addWidget(new ParamControl("Compass",
-                                            "Compass",
+                                            "나침반",
                                             "Add a compass in bottom right corner of the onroad that rotates according to the direction you're driving.",
                                             "../assets/offroad/icon_compass.png"
                                              ));
@@ -635,7 +632,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
 
   QString selected = QString::fromStdString(Params().get("SelectedCar"));
 
-  QPushButton* selectCarBtn = new QPushButton(selected.length() ? selected : "Select your car");
+  QPushButton* selectCarBtn = new QPushButton(selected.length() ? selected : "차량을 선택하세요");
   selectCarBtn->setObjectName("selectCarBtn");
   //selectCarBtn->setStyleSheet("margin-right: 30px;");
   //selectCarBtn->setFixedSize(350, 100);
@@ -655,7 +652,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   connect(selectCar, &SelectCar::selectedCar, [=]() {
 
      QString selected = QString::fromStdString(Params().get("SelectedCar"));
-     selectCarBtn->setText(selected.length() ? selected : "Select your car");
+     selectCarBtn->setText(selected.length() ? selected : "차량을 선택하세요");
      main_layout->setCurrentWidget(homeScreen);
   });
   main_layout->addWidget(selectCar);
