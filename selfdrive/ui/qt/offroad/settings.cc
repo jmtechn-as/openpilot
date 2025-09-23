@@ -47,12 +47,12 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       "Receive alerts to steer back into the lane when your vehicle drifts over a detected lane line without a turn signal activated while driving over 31 mph (50 km/h).",
       "../assets/offroad/icon_warning.png",
     },
-    {
+    /*{
       "IsRHD",
       "Enable Right-Hand Drive",
       "Allow openpilot to obey left-hand traffic conventions and perform driver monitoring on right driver seat.",
       "../assets/offroad/icon_openpilot_mirrored.png",
-    },
+    },*/
     {
       "IsMetric",
       "Use Metric System",
@@ -118,6 +118,48 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   QHBoxLayout *reset_layout = new QHBoxLayout();
   reset_layout->setSpacing(30);
 
+  // offroad-only buttons
+
+  auto dcamBtn = new ButtonControl("Driver Camera", "PREVIEW",
+                                   "Preview the driver facing camera to help optimize device mounting position for best driver monitoring experience. (vehicle must be off)");
+  connect(dcamBtn, &ButtonControl::clicked, [=]() { emit showDriverView(); });
+  addItem(dcamBtn);
+
+  auto resetCalibBtn = new ButtonControl("Reset Calibration", "RESET", " ");
+  connect(resetCalibBtn, &ButtonControl::showDescription, this, &DevicePanel::updateCalibDescription);
+  connect(resetCalibBtn, &ButtonControl::clicked, [&]() {
+    if (ConfirmationDialog::confirm("Are you sure you want to reset calibration?", this)) {
+      params.remove("CalibrationParams");
+    }
+  });
+  addItem(resetCalibBtn);
+
+  /*
+  if (!params.getBool("Passive")) {
+    auto retrainingBtn = new ButtonControl("Review Training Guide", "REVIEW", "Review the rules, features, and limitations of openpilot");
+    connect(retrainingBtn, &ButtonControl::clicked, [=]() {
+      if (ConfirmationDialog::confirm("Are you sure you want to review the training guide?", this)) {
+        emit reviewTrainingGuide();
+      }
+    });
+    addItem(retrainingBtn);
+  }
+
+  if (Hardware::TICI()) {
+    auto regulatoryBtn = new ButtonControl("Regulatory", "VIEW", "");
+    connect(regulatoryBtn, &ButtonControl::clicked, [=]() {
+      const std::string txt = util::read_file("../assets/offroad/fcc.html");
+      RichTextDialog::alert(QString::fromStdString(txt), this);
+    });
+    addItem(regulatoryBtn);
+  }
+
+  QObject::connect(uiState(), &UIState::offroadTransition, [=](bool offroad) {
+    for (auto btn : findChildren<ButtonControl *>()) {
+      btn->setEnabled(offroad);
+    }
+  });*/
+
   // reset calibration button
   QPushButton *restart_openpilot_btn = new QPushButton("Soft restart");
   restart_openpilot_btn->setStyleSheet("height: 120px;border-radius: 15px;background-color: #393939;");
@@ -145,47 +187,6 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   });
 
   addItem(reset_layout);
-
-  // offroad-only buttons
-
-  auto dcamBtn = new ButtonControl("Driver Camera", "PREVIEW",
-                                   "Preview the driver facing camera to help optimize device mounting position for best driver monitoring experience. (vehicle must be off)");
-  connect(dcamBtn, &ButtonControl::clicked, [=]() { emit showDriverView(); });
-  addItem(dcamBtn);
-
-  auto resetCalibBtn = new ButtonControl("Reset Calibration", "RESET", " ");
-  connect(resetCalibBtn, &ButtonControl::showDescription, this, &DevicePanel::updateCalibDescription);
-  connect(resetCalibBtn, &ButtonControl::clicked, [&]() {
-    if (ConfirmationDialog::confirm("Are you sure you want to reset calibration?", this)) {
-      params.remove("CalibrationParams");
-    }
-  });
-  addItem(resetCalibBtn);
-
-  if (!params.getBool("Passive")) {
-    auto retrainingBtn = new ButtonControl("Review Training Guide", "REVIEW", "Review the rules, features, and limitations of openpilot");
-    connect(retrainingBtn, &ButtonControl::clicked, [=]() {
-      if (ConfirmationDialog::confirm("Are you sure you want to review the training guide?", this)) {
-        emit reviewTrainingGuide();
-      }
-    });
-    addItem(retrainingBtn);
-  }
-
-  if (Hardware::TICI()) {
-    auto regulatoryBtn = new ButtonControl("Regulatory", "VIEW", "");
-    connect(regulatoryBtn, &ButtonControl::clicked, [=]() {
-      const std::string txt = util::read_file("../assets/offroad/fcc.html");
-      RichTextDialog::alert(QString::fromStdString(txt), this);
-    });
-    addItem(regulatoryBtn);
-  }
-
-  /*QObject::connect(uiState(), &UIState::offroadTransition, [=](bool offroad) {
-    for (auto btn : findChildren<ButtonControl *>()) {
-      btn->setEnabled(offroad);
-    }
-  });*/
 
   // power buttons
   QHBoxLayout *power_layout = new QHBoxLayout();
