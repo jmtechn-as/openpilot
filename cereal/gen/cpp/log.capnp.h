@@ -382,7 +382,6 @@ CAPNP_DECLARE_SCHEMA(a61452f6440d97d3);
 CAPNP_DECLARE_SCHEMA(c4c96f53ad1e7485);
 CAPNP_DECLARE_SCHEMA(cf9aeab355dd85f0);
 CAPNP_DECLARE_SCHEMA(811768f8e7e9d59c);
-CAPNP_DECLARE_SCHEMA(8d32fc0d805efe68);
 CAPNP_DECLARE_SCHEMA(d314cfd957229c11);
 
 }  // namespace schemas
@@ -1832,25 +1831,9 @@ struct RoadLimitSpeed {
   class Reader;
   class Builder;
   class Pipeline;
-  struct RestArea;
 
   struct _capnpPrivate {
-    CAPNP_DECLARE_STRUCT_HEADER(811768f8e7e9d59c, 3, 1)
-    #if !CAPNP_LITE
-    static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
-    #endif  // !CAPNP_LITE
-  };
-};
-
-struct RoadLimitSpeed::RestArea {
-  RestArea() = delete;
-
-  class Reader;
-  class Builder;
-  class Pipeline;
-
-  struct _capnpPrivate {
-    CAPNP_DECLARE_STRUCT_HEADER(8d32fc0d805efe68, 0, 4)
+    CAPNP_DECLARE_STRUCT_HEADER(811768f8e7e9d59c, 3, 0)
     #if !CAPNP_LITE
     static constexpr ::capnp::_::RawBrandedSchema const* brand() { return &schema->defaultBrand; }
     #endif  // !CAPNP_LITE
@@ -14887,9 +14870,6 @@ public:
 
   inline float getCamSpeedFactor() const;
 
-  inline bool hasRestArea() const;
-  inline  ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>::Reader getRestArea() const;
-
 private:
   ::capnp::_::StructReader _reader;
   template <typename, ::capnp::Kind>
@@ -14945,13 +14925,6 @@ public:
   inline float getCamSpeedFactor();
   inline void setCamSpeedFactor(float value);
 
-  inline bool hasRestArea();
-  inline  ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>::Builder getRestArea();
-  inline void setRestArea( ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>::Reader value);
-  inline  ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>::Builder initRestArea(unsigned int size);
-  inline void adoptRestArea(::capnp::Orphan< ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>>&& value);
-  inline ::capnp::Orphan< ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>> disownRestArea();
-
 private:
   ::capnp::_::StructBuilder _builder;
   template <typename, ::capnp::Kind>
@@ -14965,117 +14938,6 @@ private:
 class RoadLimitSpeed::Pipeline {
 public:
   typedef RoadLimitSpeed Pipelines;
-
-  inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
-  inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
-      : _typeless(kj::mv(typeless)) {}
-
-private:
-  ::capnp::AnyPointer::Pipeline _typeless;
-  friend class ::capnp::PipelineHook;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-};
-#endif  // !CAPNP_LITE
-
-class RoadLimitSpeed::RestArea::Reader {
-public:
-  typedef RestArea Reads;
-
-  Reader() = default;
-  inline explicit Reader(::capnp::_::StructReader base): _reader(base) {}
-
-  inline ::capnp::MessageSize totalSize() const {
-    return _reader.totalSize().asPublic();
-  }
-
-#if !CAPNP_LITE
-  inline ::kj::StringTree toString() const {
-    return ::capnp::_::structString(_reader, *_capnpPrivate::brand());
-  }
-#endif  // !CAPNP_LITE
-
-  inline bool hasImage() const;
-  inline  ::capnp::Text::Reader getImage() const;
-
-  inline bool hasTitle() const;
-  inline  ::capnp::Text::Reader getTitle() const;
-
-  inline bool hasOilPrice() const;
-  inline  ::capnp::Text::Reader getOilPrice() const;
-
-  inline bool hasDistance() const;
-  inline  ::capnp::Text::Reader getDistance() const;
-
-private:
-  ::capnp::_::StructReader _reader;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::List;
-  friend class ::capnp::MessageBuilder;
-  friend class ::capnp::Orphanage;
-};
-
-class RoadLimitSpeed::RestArea::Builder {
-public:
-  typedef RestArea Builds;
-
-  Builder() = delete;  // Deleted to discourage incorrect usage.
-                       // You can explicitly initialize to nullptr instead.
-  inline Builder(decltype(nullptr)) {}
-  inline explicit Builder(::capnp::_::StructBuilder base): _builder(base) {}
-  inline operator Reader() const { return Reader(_builder.asReader()); }
-  inline Reader asReader() const { return *this; }
-
-  inline ::capnp::MessageSize totalSize() const { return asReader().totalSize(); }
-#if !CAPNP_LITE
-  inline ::kj::StringTree toString() const { return asReader().toString(); }
-#endif  // !CAPNP_LITE
-
-  inline bool hasImage();
-  inline  ::capnp::Text::Builder getImage();
-  inline void setImage( ::capnp::Text::Reader value);
-  inline  ::capnp::Text::Builder initImage(unsigned int size);
-  inline void adoptImage(::capnp::Orphan< ::capnp::Text>&& value);
-  inline ::capnp::Orphan< ::capnp::Text> disownImage();
-
-  inline bool hasTitle();
-  inline  ::capnp::Text::Builder getTitle();
-  inline void setTitle( ::capnp::Text::Reader value);
-  inline  ::capnp::Text::Builder initTitle(unsigned int size);
-  inline void adoptTitle(::capnp::Orphan< ::capnp::Text>&& value);
-  inline ::capnp::Orphan< ::capnp::Text> disownTitle();
-
-  inline bool hasOilPrice();
-  inline  ::capnp::Text::Builder getOilPrice();
-  inline void setOilPrice( ::capnp::Text::Reader value);
-  inline  ::capnp::Text::Builder initOilPrice(unsigned int size);
-  inline void adoptOilPrice(::capnp::Orphan< ::capnp::Text>&& value);
-  inline ::capnp::Orphan< ::capnp::Text> disownOilPrice();
-
-  inline bool hasDistance();
-  inline  ::capnp::Text::Builder getDistance();
-  inline void setDistance( ::capnp::Text::Reader value);
-  inline  ::capnp::Text::Builder initDistance(unsigned int size);
-  inline void adoptDistance(::capnp::Orphan< ::capnp::Text>&& value);
-  inline ::capnp::Orphan< ::capnp::Text> disownDistance();
-
-private:
-  ::capnp::_::StructBuilder _builder;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::ToDynamic_;
-  friend class ::capnp::Orphanage;
-  template <typename, ::capnp::Kind>
-  friend struct ::capnp::_::PointerHelpers;
-};
-
-#if !CAPNP_LITE
-class RoadLimitSpeed::RestArea::Pipeline {
-public:
-  typedef RestArea Pipelines;
 
   inline Pipeline(decltype(nullptr)): _typeless(nullptr) {}
   inline explicit Pipeline(::capnp::AnyPointer::Pipeline&& typeless)
@@ -37519,176 +37381,6 @@ inline float RoadLimitSpeed::Builder::getCamSpeedFactor() {
 inline void RoadLimitSpeed::Builder::setCamSpeedFactor(float value) {
   _builder.setDataField<float>(
       ::capnp::bounded<4>() * ::capnp::ELEMENTS, value);
-}
-
-inline bool RoadLimitSpeed::Reader::hasRestArea() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
-}
-inline bool RoadLimitSpeed::Builder::hasRestArea() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
-}
-inline  ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>::Reader RoadLimitSpeed::Reader::getRestArea() const {
-  return ::capnp::_::PointerHelpers< ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
-}
-inline  ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>::Builder RoadLimitSpeed::Builder::getRestArea() {
-  return ::capnp::_::PointerHelpers< ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
-}
-inline void RoadLimitSpeed::Builder::setRestArea( ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>::Reader value) {
-  ::capnp::_::PointerHelpers< ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
-}
-inline  ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>::Builder RoadLimitSpeed::Builder::initRestArea(unsigned int size) {
-  return ::capnp::_::PointerHelpers< ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), size);
-}
-inline void RoadLimitSpeed::Builder::adoptRestArea(
-    ::capnp::Orphan< ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>>&& value) {
-  ::capnp::_::PointerHelpers< ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
-}
-inline ::capnp::Orphan< ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>> RoadLimitSpeed::Builder::disownRestArea() {
-  return ::capnp::_::PointerHelpers< ::capnp::List< ::cereal::RoadLimitSpeed::RestArea,  ::capnp::Kind::STRUCT>>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
-}
-
-inline bool RoadLimitSpeed::RestArea::Reader::hasImage() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
-}
-inline bool RoadLimitSpeed::RestArea::Builder::hasImage() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS).isNull();
-}
-inline  ::capnp::Text::Reader RoadLimitSpeed::RestArea::Reader::getImage() const {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::get(_reader.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
-}
-inline  ::capnp::Text::Builder RoadLimitSpeed::RestArea::Builder::getImage() {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::get(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
-}
-inline void RoadLimitSpeed::RestArea::Builder::setImage( ::capnp::Text::Reader value) {
-  ::capnp::_::PointerHelpers< ::capnp::Text>::set(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), value);
-}
-inline  ::capnp::Text::Builder RoadLimitSpeed::RestArea::Builder::initImage(unsigned int size) {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::init(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), size);
-}
-inline void RoadLimitSpeed::RestArea::Builder::adoptImage(
-    ::capnp::Orphan< ::capnp::Text>&& value) {
-  ::capnp::_::PointerHelpers< ::capnp::Text>::adopt(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS), kj::mv(value));
-}
-inline ::capnp::Orphan< ::capnp::Text> RoadLimitSpeed::RestArea::Builder::disownImage() {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::disown(_builder.getPointerField(
-      ::capnp::bounded<0>() * ::capnp::POINTERS));
-}
-
-inline bool RoadLimitSpeed::RestArea::Reader::hasTitle() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
-}
-inline bool RoadLimitSpeed::RestArea::Builder::hasTitle() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS).isNull();
-}
-inline  ::capnp::Text::Reader RoadLimitSpeed::RestArea::Reader::getTitle() const {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::get(_reader.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
-}
-inline  ::capnp::Text::Builder RoadLimitSpeed::RestArea::Builder::getTitle() {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::get(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
-}
-inline void RoadLimitSpeed::RestArea::Builder::setTitle( ::capnp::Text::Reader value) {
-  ::capnp::_::PointerHelpers< ::capnp::Text>::set(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), value);
-}
-inline  ::capnp::Text::Builder RoadLimitSpeed::RestArea::Builder::initTitle(unsigned int size) {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::init(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), size);
-}
-inline void RoadLimitSpeed::RestArea::Builder::adoptTitle(
-    ::capnp::Orphan< ::capnp::Text>&& value) {
-  ::capnp::_::PointerHelpers< ::capnp::Text>::adopt(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS), kj::mv(value));
-}
-inline ::capnp::Orphan< ::capnp::Text> RoadLimitSpeed::RestArea::Builder::disownTitle() {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::disown(_builder.getPointerField(
-      ::capnp::bounded<1>() * ::capnp::POINTERS));
-}
-
-inline bool RoadLimitSpeed::RestArea::Reader::hasOilPrice() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS).isNull();
-}
-inline bool RoadLimitSpeed::RestArea::Builder::hasOilPrice() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS).isNull();
-}
-inline  ::capnp::Text::Reader RoadLimitSpeed::RestArea::Reader::getOilPrice() const {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::get(_reader.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS));
-}
-inline  ::capnp::Text::Builder RoadLimitSpeed::RestArea::Builder::getOilPrice() {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::get(_builder.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS));
-}
-inline void RoadLimitSpeed::RestArea::Builder::setOilPrice( ::capnp::Text::Reader value) {
-  ::capnp::_::PointerHelpers< ::capnp::Text>::set(_builder.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS), value);
-}
-inline  ::capnp::Text::Builder RoadLimitSpeed::RestArea::Builder::initOilPrice(unsigned int size) {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::init(_builder.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS), size);
-}
-inline void RoadLimitSpeed::RestArea::Builder::adoptOilPrice(
-    ::capnp::Orphan< ::capnp::Text>&& value) {
-  ::capnp::_::PointerHelpers< ::capnp::Text>::adopt(_builder.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS), kj::mv(value));
-}
-inline ::capnp::Orphan< ::capnp::Text> RoadLimitSpeed::RestArea::Builder::disownOilPrice() {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::disown(_builder.getPointerField(
-      ::capnp::bounded<2>() * ::capnp::POINTERS));
-}
-
-inline bool RoadLimitSpeed::RestArea::Reader::hasDistance() const {
-  return !_reader.getPointerField(
-      ::capnp::bounded<3>() * ::capnp::POINTERS).isNull();
-}
-inline bool RoadLimitSpeed::RestArea::Builder::hasDistance() {
-  return !_builder.getPointerField(
-      ::capnp::bounded<3>() * ::capnp::POINTERS).isNull();
-}
-inline  ::capnp::Text::Reader RoadLimitSpeed::RestArea::Reader::getDistance() const {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::get(_reader.getPointerField(
-      ::capnp::bounded<3>() * ::capnp::POINTERS));
-}
-inline  ::capnp::Text::Builder RoadLimitSpeed::RestArea::Builder::getDistance() {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::get(_builder.getPointerField(
-      ::capnp::bounded<3>() * ::capnp::POINTERS));
-}
-inline void RoadLimitSpeed::RestArea::Builder::setDistance( ::capnp::Text::Reader value) {
-  ::capnp::_::PointerHelpers< ::capnp::Text>::set(_builder.getPointerField(
-      ::capnp::bounded<3>() * ::capnp::POINTERS), value);
-}
-inline  ::capnp::Text::Builder RoadLimitSpeed::RestArea::Builder::initDistance(unsigned int size) {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::init(_builder.getPointerField(
-      ::capnp::bounded<3>() * ::capnp::POINTERS), size);
-}
-inline void RoadLimitSpeed::RestArea::Builder::adoptDistance(
-    ::capnp::Orphan< ::capnp::Text>&& value) {
-  ::capnp::_::PointerHelpers< ::capnp::Text>::adopt(_builder.getPointerField(
-      ::capnp::bounded<3>() * ::capnp::POINTERS), kj::mv(value));
-}
-inline ::capnp::Orphan< ::capnp::Text> RoadLimitSpeed::RestArea::Builder::disownDistance() {
-  return ::capnp::_::PointerHelpers< ::capnp::Text>::disown(_builder.getPointerField(
-      ::capnp::bounded<3>() * ::capnp::POINTERS));
 }
 
 inline  ::cereal::Event::Which Event::Reader::which() const {
