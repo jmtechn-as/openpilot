@@ -16,14 +16,14 @@
 
 TrackWidget::TrackWidget(QWidget *parent) : QWidget(parent) {
   setAttribute(Qt::WA_OpaquePaintEvent);
-  setFixedSize(screenBG_spinner_size);
+  setFixedSize(spinner_size);
 
   // pre-compute all the track imgs. make this a gif instead?
-  QPixmap comma_img = loadPixmap("../assets/img_spinner_comma.png", screenBG_spinner_size);
-  QPixmap track_img = loadPixmap("../assets/img_spinner_track.png", screenBG_spinner_size);
+  QPixmap comma_img = loadPixmap("../assets/img_spinner_comma.png", spinner_size);
+  QPixmap track_img = loadPixmap("../assets/img_spinner_track.png", spinner_size);
 
   QTransform transform(1, 0, 0, 1, width() / 2, height() / 2);
-  QPixmap pm(screenBG_spinner_size);
+  QPixmap pm(spinner_size);
   QPainter p(&pm);
   p.setRenderHint(QPainter::SmoothPixmapTransform);
   for (int i = 0; i < track_imgs.size(); ++i) {
@@ -53,7 +53,7 @@ void TrackWidget::paintEvent(QPaintEvent *event) {
 Spinner::Spinner(QWidget *parent) : QWidget(parent) {
   QGridLayout *main_layout = new QGridLayout(this);
   main_layout->setSpacing(0);
-  main_layout->setMargin(0);
+  main_layout->setMargin(200);
 
   main_layout->addWidget(new TrackWidget(this), 0, 0, Qt::AlignHCenter | Qt::AlignVCenter);
 
